@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Chain of Custody Timeline{% endblock %}
+
+{% block content %}
+<section>
+    <h2>Track Chain of Custody</h2>
+    <p>Select a batch to monitor its chronological lifecycle status.</p>
+    
+    <form method="GET" action="" onsubmit="goToTimeline(event)">
+        <div class="grid">
+            <label for="batch_select">Select Batch
+                <select id="batch_select" required>
+                    <option value="" disabled {% if not current_batch %}selected{% endif %}>Choose a batch...</option>
+                    {% for b in batches %}
+                    <option value="{{ b.public_id }}" {% if current_batch and current_batch.public_id == b.public_id %}selected{% endif %}>{{ b.public_id }} - {{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div style="display: flex; align-items: flex-end;">
+                <button type="submit" style="margin-bottom: var(--spacing);">View Timeline</button>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        function goToTimeline(e) {
+            e.preventDefault();
+            const val = document.getElementById('batch_select').value;
+            if(val) {
+                window.location.href = "/timeline/" + val;
+            }
+        }
+    </script>
+</section>
+
+{% if current_batch %}
+<section>
+    <article style="padding: 2rem 3rem;">
+        <hgroup style="margin-bottom: 2rem;">
+            <h3>Chain of Custody</h3>
+            <h4>Batch: {{ current_batch.public_id }}</h4>
+        </hgroup>
+        
+        <div class="timeline">
+            <!-- Step 1: Collection -->
+            <div class="timeline-step {% if current_stage_idx > 0 %}completed{% elif current_stage_idx == 0 %}current{% else %}pending{% endif %}">
+                <div class="timeline-icon">{% if current_stage_idx > 0 %}✓{% elif current_stage_idx == 0 %}1{% else %}1{% endif %}</div>
+                <div class="timeline-content">
+                    <h5>Step 1: Collected</h5>
+                    <p>Sample collected and labeled at origin.</p>
+                    {% if 'collection' in events %}
+                    <small>Logged on: {{ events['collection'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['collection'].temperature or 'N/A' }}°C</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Step 2: Transport -->
+            <div class="timeline-step {% if current_stage_idx > 1 %}completed{% elif current_stage_idx == 1 %}current{% else %}pending{% endif %}">
+                <div class="timeline-icon">{% if current_stage_idx > 1 %}✓{% elif current_stage_idx == 1 %}2{% else %}2{% endif %}</div>
+                <div class="timeline-content">
+                    <h5>Step 2: Transported</h5>
+                    <p>Safely transported to facility.</p>
+                    {% if 'transport' in events %}
+                    <small>Logged on: {{ events['transport'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['transport'].temperature or 'N/A' }}°C</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Step 3: Storage (Received) -->
+            <div class="timeline-step {% if current_stage_idx > 2 %}completed{% elif current_stage_idx == 2 %}current{% else %}pending{% endif %}">
+                <div class="timeline-icon">{% if current_stage_idx > 2 %}✓{% elif current_stage_idx == 2 %}3{% else %}3{% endif %}</div>
+                <div class="timeline-content">
+                    <h5>Step 3: Received / Stored</h5>
+                    <p>Logged at destination laboratory and stored.</p>
+                    {% if 'storage' in events %}
+                    <small>Logged on: {{ events['storage'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['storage'].temperature or 'N/A' }}°C</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Step 4: Packaged -->
+            <div class="timeline-step {% if current_stage_idx > 3 %}completed{% elif current_stage_idx == 3 %}current{% else %}pending{% endif %}">
+                <div class="timeline-icon">{% if current_stage_idx > 3 %}✓{% elif current_stage_idx == 3 %}4{% else %}4{% endif %}</div>
+                <div class="timeline-content">
+                    <h5>Step 4: Packaged</h5>
+                    <p>Secured and packaged for end-mile distribution.</p>
+                    {% if 'package' in events %}
+                    <small>Logged on: {{ events['package'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['package'].temperature or 'N/A' }}°C</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Step 5: Dispose -->
+            <div class="timeline-step {% if current_stage_idx > 4 %}completed{% elif current_stage_idx == 4 %}current{% else %}pending{% endif %}">
+                <div class="timeline-icon">{% if current_stage_idx > 4 %}✓{% elif current_stage_idx == 4 %}5{% else %}5{% endif %}</div>
+                <div class="timeline-content">
+                    <h5>Step 5: Disposed</h5>
+                    <p>Safely destroyed per regulations.</p>
+                    {% if 'dispose' in events %}
+                    <small>Logged on: {{ events['dispose'].timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            
+        </div>
+    </article>
+</section>
+{% endif %}
+{% endblock %}

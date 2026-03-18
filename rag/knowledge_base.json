@@ -1,0 +1,57 @@
+[
+  {
+    "id": "1",
+    "tags": ["food", "hot", "short_term"],
+    "text": "In hot climates, keep fresh food at 4°C, use insulated containers, and consume within 24 hours to prevent rapid bacterial growth."
+  },
+  {
+    "id": "2",
+    "tags": ["food", "humid", "medium_term"],
+    "text": "For humid conditions, store vegetables in breathable bags in the refrigerator. Wait to wash them until directly before use to reduce mold risks."
+  },
+  {
+    "id": "3",
+    "tags": ["herb", "dry", "long_term"],
+    "text": "Store dried Ayurvedic herbs in airtight glass containers in a cool, dark place away from direct sunlight. Moisture and heat degrade active compounds."
+  },
+  {
+    "id": "4",
+    "tags": ["sample", "cold", "medium_term"],
+    "text": "Biological samples should be stored immediately at -20°C. Ensure rapid transport using dry ice and document every temperature excursion."
+  },
+  {
+    "id": "5",
+    "tags": ["food", "milk"],
+    "text": "Unpasteurized milk must be kept between 1°C and 4°C and boiled immediately upon reaching the destination."
+  },
+  {
+    "id": "6",
+    "tags": ["herb", "transport", "cold_chain"],
+    "text": "During transport, medicinal herbs should be sealed in multi-layer moisture barrier bags. Avoid refrigeration changes greater than 5°C to prevent condensation accumulation inside the packaging."
+  },
+  {
+    "id": "7",
+    "tags": ["food", "cold_chain", "packaging"],
+    "text": "Cold chain products (dairy, meat, produce) must maintain continuous refrigeration below 5°C. Use data loggers to record temperature during the entire transport journey."
+  },
+  {
+    "id": "8",
+    "tags": ["sample", "biosafety", "lab"],
+    "text": "Laboratory bio-samples suspected of contamination should be double-bagged in biohazard-safe containers and transported on ice at 4°C to a certified lab immediately."
+  },
+  {
+    "id": "9",
+    "tags": ["food", "grain", "dry", "long_term"],
+    "text": "Grains and dry food products should be stored in sealed silos or containers with moisture below 13%. Use desiccants and monitor humidity sensors regularly."
+  },
+  {
+    "id": "10",
+    "tags": ["general", "disposal", "expired"],
+    "text": "Expired or contaminated batches must be quarantined and destroyed as per local bio-safety regulations. Document disposal with photographic evidence and regulatory clearance numbers."
+  },
+  {
+    "id": "11",
+    "tags": ["herb", "oil", "extract", "preservation"],
+    "text": "Essential oil extracts from herbs should be stored in dark amber glass bottles at 10–15°C, away from UV light. Oxidation significantly degrades potency within weeks of exposure to air."
+  }
+]

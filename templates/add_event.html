@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Log New Event - Supply Chain{% endblock %}
+
+{% block content %}
+<article>
+    <header>
+        <h2>Log Supply Chain Event</h2>
+        <p>Record a new event (transit, storage, testing) for an existing batch.</p>
+    </header>
+    <form method="POST">
+        <label for="batch_id">Select Batch
+            <select id="batch_id" name="batch_id" required>
+                <option value="" disabled selected>Choose a batch...</option>
+                {% for batch in batches %}
+                <option value="{{ batch.id }}">{{ batch.public_id }} - {{ batch.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <div class="grid">
+            <label for="event_type">Event Type
+                <select id="event_type" name="event_type" required>
+                    <!-- Options populated by JS based on selected batch -->
+                </select>
+            </label>
+            <label for="location">Location
+                <input type="text" id="location" name="location" placeholder="e.g. Warehouse B" required>
+            </label>
+        </div>
+
+        <div class="grid" id="env-grid">
+            <label for="temperature">Temperature (deg C)
+                <input type="number" step="0.1" id="temperature" name="temperature" placeholder="e.g. 4.5">
+            </label>
+            <label for="humidity">Humidity (%)
+                <input type="number" step="0.1" id="humidity" name="humidity" placeholder="e.g. 60.0">
+            </label>
+        </div>
+
+        <label for="remarks">Remarks
+            <textarea id="remarks" name="remarks" placeholder="Any additional notes..."></textarea>
+        </label>
+
+        <button type="submit" id="submit_btn">Record Event on Blockchain</button>
+    </form>
+</article>
+
+<script>
+    const batchStates = {{ batch_states | tojson | safe }};
+    const optionsMap = {
+        'collection': 'Collection (Step 1)',
+        'transport': 'Transport (Step 2)',
+        'storage': 'Storage / Shelf (Step 3)',
+        'package': 'Packaging (Step 4)',
+        'dispose': 'Disposal (Step 5)'
+    };
+    
+    function toggleEnvGrid() {
+        const eventSelect = document.getElementById('event_type');
+        const envGrid = document.getElementById('env-grid');
+        if (eventSelect.value === 'collection' || eventSelect.value === 'dispose') {
+            envGrid.style.display = 'none';
+        } else {
+            envGrid.style.display = 'grid'; // Pico.css grid layout
+        }
+    }
+
+    document.getElementById('batch_id').addEventListener('change', function() {
+        const batchId = this.value;
+        const currentState = batchStates[batchId];
+        const eventSelect = document.getElementById('event_type');
+        const submitBtn = document.getElementById('submit_btn');
+        
+        eventSelect.innerHTML = ''; // Clear current options
+        
+        let allowedEvents = [];
+        if (!currentState) {
+            allowedEvents = ['collection'];
+        } else if (currentState === 'collection') {
+            allowedEvents = ['transport'];
+        } else if (currentState === 'transport') {
+            allowedEvents = ['storage'];
+        } else if (currentState === 'storage') {
+            allowedEvents = ['package'];
+        } else if (currentState === 'package') {
+            allowedEvents = ['dispose'];
+        } else if (currentState === 'dispose' || currentState === 'test') {
+            allowedEvents = [];
+        }
+        
+        if (allowedEvents.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = "";
+            opt.text = "Batch lifecycle is fully complete (Disposed).";
+            eventSelect.appendChild(opt);
+            submitBtn.disabled = true;
+        } else {
+            submitBtn.disabled = false;
+            allowedEvents.forEach(val => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.text = optionsMap[val];
+                eventSelect.appendChild(opt);
+            });
+        }
+        toggleEnvGrid();
+    });
+
+    document.getElementById('event_type').addEventListener('change', toggleEnvGrid);
+
+    // Handle back button / cached page selection state
+    if(document.getElementById('batch_id').value) {
+        document.getElementById('batch_id').dispatchEvent(new Event('change'));
+    }
+</script>
+{% endblock %}

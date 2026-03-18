@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Batch {{ batch.public_id }} - Detail{% endblock %}
+
+{% block content %}
+<section>
+    <hgroup>
+        <h2>Batch: {{ batch.public_id }}</h2>
+        <h3>{{ batch.name }} | Type: {{ batch.batch_type | capitalize }} | Origin: {{ batch.origin }}</h3>
+    </hgroup>
+    <p>Registered on: <strong>{{ batch.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</strong></p>
+
+    {% if batch.blockchain_tx_hash %}
+    <details>
+        <summary>Blockchain Proof (Creation)</summary>
+        <code>Tx Hash: {{ batch.blockchain_tx_hash }}</code>
+    </details>
+    {% endif %}
+
+    <div class="grid">
+        <button id="btn-predict" onclick="predictShelfLife('{{ batch.public_id }}')">Predict Shelf-Life (AI)</button>
+        <button id="btn-advise" class="secondary" onclick="getPreservationAdvice('{{ batch.public_id }}')">Get Preservation Advice (RAG)</button>
+    </div>
+
+    <div id="result-box" style="display:none; margin-top:1rem;"></div>
+
+    <hr>
+    <h3>Event History</h3>
+    {% if events %}
+    <figure>
+        <table role="grid">
+            <thead>
+                <tr>
+                    <th>Event Type</th>
+                    <th>Location</th>
+                    <th>Temp (C)</th>
+                    <th>Humidity (%)</th>
+                    <th>Timestamp</th>
+                    <th>Remarks</th>
+                    <th>Blockchain Tx</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.event_type | capitalize }}</td>
+                    <td>{{ event.location or '-' }}</td>
+                    <td>{{ event.temperature or '-' }}</td>
+                    <td>{{ event.humidity or '-' }}</td>
+                    <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ event.remarks or '-' }}</td>
+                    <td>
+                        {% if event.blockchain_tx_hash %}
+                        <code style="font-size:0.7em;">{{ event.blockchain_tx_hash[:14] }}...</code>
+                        {% else %}
+                        <em>Local only</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+    {% else %}
+    <p>No events logged yet. <a href="{{ url_for('create_event') }}">Add one now.</a></p>
+    {% endif %}
+</section>
+{% endblock %}

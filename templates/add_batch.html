@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Add Target Batch{% endblock %}
+
+{% block content %}
+<article>
+    <header>
+        <h2>Register New Supply Batch</h2>
+    </header>
+    <form method="POST">
+        <div class="grid">
+            <label for="public_id">Public/QR ID
+                <input type="text" id="public_id" name="public_id" placeholder="e.g. BATCH-2026-X1" required>
+            </label>
+            <label for="name">Product Name
+                <input type="text" id="name" name="name" placeholder="e.g. Fresh Milk, Dried Ginseng" required>
+            </label>
+        </div>
+        
+        <div class="grid">
+            <label for="batch_type">Batch Type
+                <select id="batch_type" name="batch_type" required>
+                    <option value="" disabled selected>Select type</option>
+                    <option value="food">Perishable Food</option>
+                    <option value="herb">Ayurvedic Herb</option>
+                    <option value="sample">Bio Sample</option>
+                </select>
+            </label>
+            
+            <label for="origin">Origin/Farm Location
+                <input type="text" id="origin" name="origin" placeholder="e.g. Gujarat Farm A" required>
+            </label>
+        </div>
+        
+        <button type="submit">Record Batch on Blockchain</button>
+    </form>
+</article>
+{% endblock %}

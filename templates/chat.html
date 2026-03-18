@@ -1,0 +1,17 @@
+<dialog id="chat-modal">
+    <article>
+        <header>
+            <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('chat-modal').removeAttribute('open')"></a>
+            Smart Supply Chain Assistant
+        </header>
+        <div id="chat-history" style="height: 300px; overflow-y: auto; margin-bottom: 20px; padding: 10px; border: 1px solid var(--muted-border-color); border-radius: 5px;">
+            <p><em>Assistant:</em> Hello! I'm your Bio-Tech Traceability Assistant. How can I help you today?</p>
+        </div>
+        <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();">
+            <div class="grid">
+                <input type="text" id="chat-input" placeholder="Type your question..." required autocomplete="off">
+                <button type="submit">Send</button>
+            </div>
+        </form>
+    </article>
+</dialog>

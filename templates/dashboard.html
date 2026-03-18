@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Supply Chain{% endblock %}
+
+{% block content %}
+<section>
+    <h2>Recent Supply Chain Batches</h2>
+    <div class="grid">
+        <a href="{{ url_for('create_batch') }}" role="button">Register New Batch</a>
+        <a href="{{ url_for('create_event') }}" role="button" class="secondary">Log New Event</a>
+        <a href="#chat-modal" role="button" class="contrast" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+    </div>
+    
+    <figure>
+        <table role="grid">
+            <thead>
+                <tr>
+                    <th scope="col">Batch ID (Public)</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Origin</th>
+                    <th scope="col">Date Registered</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in batches %}
+                <tr>
+                    <td>{{ batch.public_id }}</td>
+                    <td>{{ batch.name }}</td>
+                    <td>{{ batch.batch_type | capitalize }}</td>
+                    <td>{{ batch.origin }}</td>
+                    <td>{{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td><a href="{{ url_for('batch_detail', public_id=batch.public_id) }}">View Details</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center;">No batches found. Create one to get started!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </figure>
+</section>
+
+<!-- Include Chatbot Modal -->
+{% include "chat.html" %}
+
+{% endblock %}
