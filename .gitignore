@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# Flask
+instance/
+.pytest_cache/
+
+# AI Models & Large Data (Optional, but usually included for small demo repos)
+# model.pkl
+# embeddings.npy
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo

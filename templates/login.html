@@ -1,25 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Supply Chain{% endblock %}
+{% block title %}Portal Login - Bio-Tech Traceability{% endblock %}
 
 {% block content %}
-<article class="grid">
-    <div>
-        <hgroup>
-            <h1>Sign in</h1>
-            <h2>Welcome back to the Tracking System</h2>
-        </hgroup>
-        <form method="POST">
-            <label for="username">Username
-                <input type="text" id="username" name="username" placeholder="admin" required>
+<section class="fade-in" style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+    <article style="width: 100%; max-width: 450px; text-align: center;">
+        <header>
+            <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--brand-primary); margin-bottom: 1rem;"></i>
+            <h2>Secure Portal Login</h2>
+            <p class="text-muted">Access the Traceability Control Center</p>
+        </header>
+
+        <form action="{{ url_for('login') }}" method="post" style="text-align: left;">
+            <label for="username">
+                Username
+                <input type="text" id="username" name="username" placeholder="Enter username" required>
             </label>
-            <label for="password">Password
-                <input type="password" id="password" name="password" placeholder="admin123" required>
+            
+            <label for="password">
+                Password
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
             </label>
-            <button type="submit">Login</button>
+            
+            <button type="submit" class="primary-btn full-width" style="margin-top: 1.5rem;">
+                Authenticate Session <i class="fa-solid fa-key" style="margin-left: 8px;"></i>
+            </button>
         </form>
-    </div>
-    <div style="background-image: url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=800&auto=format&fit=crop'); background-size: cover; border-radius: 10px; min-height: 400px;">
-    </div>
-</article>
+
+        <footer style="margin-top: 2rem; border: none; padding: 0;">
+            <p class="text-muted" style="font-size: 0.8rem;">
+                Authorized personnel only. Sessions are logged on-chain.
+            </p>
+        </footer>
+    </article>
+</section>
 {% endblock %}

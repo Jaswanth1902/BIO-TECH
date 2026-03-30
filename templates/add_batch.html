@@ -1,38 +1,60 @@
 {% extends "base.html" %}
 
-{% block title %}Add Target Batch{% endblock %}
+{% block title %}Register New Batch - Bio-Tech Traceability{% endblock %}
 
 {% block content %}
-<article>
-    <header>
-        <h2>Register New Supply Batch</h2>
-    </header>
-    <form method="POST">
-        <div class="grid">
-            <label for="public_id">Public/QR ID
-                <input type="text" id="public_id" name="public_id" placeholder="e.g. BATCH-2026-X1" required>
-            </label>
-            <label for="name">Product Name
-                <input type="text" id="name" name="name" placeholder="e.g. Fresh Milk, Dried Ginseng" required>
-            </label>
-        </div>
-        
-        <div class="grid">
-            <label for="batch_type">Batch Type
-                <select id="batch_type" name="batch_type" required>
-                    <option value="" disabled selected>Select type</option>
-                    <option value="food">Perishable Food</option>
-                    <option value="herb">Ayurvedic Herb</option>
-                    <option value="sample">Bio Sample</option>
-                </select>
-            </label>
-            
-            <label for="origin">Origin/Farm Location
-                <input type="text" id="origin" name="origin" placeholder="e.g. Gujarat Farm A" required>
-            </label>
-        </div>
-        
-        <button type="submit">Record Batch on Blockchain</button>
-    </form>
-</article>
+<section class="fade-in" style="max-width: 800px; margin: 0 auto;">
+    <hgroup>
+        <h1>Batch Registration</h1>
+        <p>Initialize a new biological product in the chain of trust.</p>
+    </hgroup>
+
+    <article>
+        <header>
+            <h3 style="margin-bottom: 0;"><i class="fa-solid fa-box-archive" style="margin-right: 12px; color: var(--brand-primary);"></i>Product Metadata</h3>
+            <p class="text-muted" style="margin-bottom: 0;">Fill in the primary details to generate a unique on-chain ID.</p>
+        </header>
+
+        <form action="{{ url_for('create_batch') }}" method="post" class="grid">
+            <div>
+                <label for="public_id">
+                    Batch ID (Public)
+                    <input type="text" id="public_id" name="public_id" placeholder="e.g. BTC-2026-X1" required>
+                </label>
+                
+                <label for="batch_type">
+                    Product Classification
+                    <select id="batch_type" name="batch_type" required>
+                        <option value="food">🍱 Fresh Food</option>
+                        <option value="herb">🌿 Medicinal Herb</option>
+                        <option value="sample">🧪 Bio-Sample</option>
+                        <option value="vaccine" selected>💉 Vaccine / Pharma</option>
+                    </select>
+                </label>
+            </div>
+
+            <div>
+                <label for="name">
+                    Product Name
+                    <input type="text" id="name" name="name" placeholder="e.g. mRNA-1273 Vials" required>
+                </label>
+                
+                <label for="origin">
+                    Production Origin
+                    <input type="text" id="origin" name="origin" placeholder="e.g. Lab Center, Pune" required>
+                </label>
+            </div>
+
+            <div style="grid-column: 1 / -1; margin-top: 2rem; border-top: 1px dashed var(--glass-border); padding-top: 1.5rem;">
+                <p class="text-muted" style="font-size: 0.85rem; text-align: center; margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-link" style="margin-right: 8px;"></i> This record will be cryptographically anchored to the blockchain.
+                </p>
+                <button type="submit" class="primary-btn full-width">
+                    Initialize Batch & Broadcast <i class="fa-solid fa-tower-broadcast" style="margin-left: 8px;"></i>
+                </button>
+                <a href="{{ url_for('dashboard') }}" role="button" class="secondary outline full-width" style="margin-top: 0.5rem;">Cancel & Return</a>
+            </div>
+        </form>
+    </article>
+</section>
 {% endblock %}

@@ -1,46 +1,71 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Supply Chain{% endblock %}
+{% block title %}Dashboard - Bio-Tech Supply Chain{% endblock %}
 
 {% block content %}
-<section>
-    <h2>Recent Supply Chain Batches</h2>
-    <div class="grid">
-        <a href="{{ url_for('create_batch') }}" role="button">Register New Batch</a>
-        <a href="{{ url_for('create_event') }}" role="button" class="secondary">Log New Event</a>
-        <a href="#chat-modal" role="button" class="contrast" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+<section class="fade-in">
+    <hgroup>
+        <h1>Bio-Tech Traceability Dashboard</h1>
+        <h3>Real-time monitoring of biological batch lifecycles</h3>
+    </hgroup>
+
+    <!-- Project Vision / Transparency Section -->
+    <div class="vision-grid">
+        <div class="vision-card">
+            <i>⛓️</i>
+            <h5>Blockchain Traceability</h5>
+            <p>Immutable event sequencing (Who/What/When)</p>
+        </div>
+        <div class="vision-card">
+            <i>🤖</i>
+            <h5>Adaptive Shelf-Life</h5>
+            <p>Condition-based AI risk assessment</p>
+        </div>
+        <div class="vision-card">
+            <i>📚</i>
+            <h5>RAG Education</h5>
+            <p>Expert guidelines for drug-specific handling</p>
+        </div>
+        <div class="vision-card">
+            <i>🛡️</i>
+            <h5>Safety Compliance</h5>
+            <p>Automated disposal and handling alerts</p>
+        </div>
     </div>
+
+    <hr>
+
+    {% if current_user.role in ['admin', 'producer'] %}
+    <div class="grid" style="margin-top: 2rem;">
+        <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
+        <a href="{{ url_for('create_event') }}" role="button" class="secondary outline">Log New Event</a>
+        <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+    </div>
+    {% else %}
+    <div class="grid" style="margin-top: 2rem;">
+        <a href="#chat-modal" role="button" class="contrast outline full-width" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+    </div>
+    {% endif %}
     
-    <figure>
-        <table role="grid">
-            <thead>
-                <tr>
-                    <th scope="col">Batch ID (Public)</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Origin</th>
-                    <th scope="col">Date Registered</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for batch in batches %}
-                <tr>
-                    <td>{{ batch.public_id }}</td>
-                    <td>{{ batch.name }}</td>
-                    <td>{{ batch.batch_type | capitalize }}</td>
-                    <td>{{ batch.origin }}</td>
-                    <td>{{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td><a href="{{ url_for('batch_detail', public_id=batch.public_id) }}">View Details</a></td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" style="text-align: center;">No batches found. Create one to get started!</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </figure>
+    <h2 style="margin-top: 3rem;">Recent Batches</h2>
+    <div class="dashboard-grid">
+        {% for batch in batches %}
+        <div class="batch-card fade-in">
+            <span class="badge">{{ batch.batch_type }}</span>
+            <h4>{{ batch.name }}</h4>
+            <div class="meta">
+                ID: {{ batch.public_id }}<br>
+                Origin: {{ batch.origin }}<br>
+                Registered: {{ batch.created_at.strftime('%Y-%m-%d') }}
+            </div>
+            <a href="{{ url_for('batch_detail', public_id=batch.public_id) }}" role="button" class="secondary outline full-width">View Details</a>
+        </div>
+        {% else %}
+        <article style="grid-column: 1 / -1; text-align: center;">
+            <p>No batches found. Create one to get started!</p>
+        </article>
+        {% endfor %}
+    </div>
 </section>
 
 <!-- Include Chatbot Modal -->

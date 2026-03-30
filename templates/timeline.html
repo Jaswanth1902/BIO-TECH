@@ -1,110 +1,85 @@
 {% extends "base.html" %}
 
-{% block title %}Chain of Custody Timeline{% endblock %}
+{% block title %}Smart Traceability Timeline - Bio-Tech{% endblock %}
 
 {% block content %}
-<section>
-    <h2>Track Chain of Custody</h2>
-    <p>Select a batch to monitor its chronological lifecycle status.</p>
-    
-    <form method="GET" action="" onsubmit="goToTimeline(event)">
-        <div class="grid">
-            <label for="batch_select">Select Batch
-                <select id="batch_select" required>
-                    <option value="" disabled {% if not current_batch %}selected{% endif %}>Choose a batch...</option>
+<section class="fade-in">
+    <hgroup>
+        <h1>Smart Traceability Timeline</h1>
+        <p>Visual Journey of Product Lifecycle & Authenticity</p>
+    </hgroup>
+
+    <div class="grid">
+        <aside style="max-width: 320px;">
+            <article style="padding: 1rem;">
+                <header><h5>Select Target Batch</h5></header>
+                <div style="max-height: 50vh; overflow-y: auto;">
                     {% for b in batches %}
-                    <option value="{{ b.public_id }}" {% if current_batch and current_batch.public_id == b.public_id %}selected{% endif %}>{{ b.public_id }} - {{ b.name }}</option>
+                    <a href="{{ url_for('timeline_batch', public_id=b.public_id) }}" 
+                       class="secondary {% if current_batch and current_batch.id == b.id %}primary-btn{% else %}outline{% endif %}" 
+                       role="button" 
+                       style="margin-bottom: 0.8rem; width: 100%; display: block; text-align: left;">
+                        <i class="fa-solid fa-dna" style="margin-right: 8px;"></i> {{ b.name }}
+                        <small style="display: block; opacity: 0.7; font-size: 0.75rem;">{{ b.public_id }}</small>
+                    </a>
                     {% endfor %}
-                </select>
-            </label>
-            <div style="display: flex; align-items: flex-end;">
-                <button type="submit" style="margin-bottom: var(--spacing);">View Timeline</button>
-            </div>
+                </div>
+            </article>
+        </aside>
+
+        <div>
+            {% if current_batch %}
+            <article>
+                <header>
+                    <h2 style="margin-bottom: 0;">Journey: {{ current_batch.name }}</h2>
+                    <p class="text-muted" style="margin-bottom: 0;">Verified Batch #{{ current_batch.public_id }}</p>
+                </header>
+
+                <div class="modern-timeline" style="margin-top: 3rem;">
+                    {% for stage in stages %}
+                    {% set ev = events.get(stage) %}
+                    <div class="timeline-item {% if ev %}active{% endif %}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>{{ stage | capitalize }}</h4>
+                            {% if ev %}
+                            <p class="text-muted" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-location-dot"></i> {{ ev.location }} | 
+                                <i class="fa-solid fa-calendar-day"></i> {{ ev.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                            </p>
+                            <div class="grid">
+                                {% if ev.temperature %}
+                                <div style="color: var(--brand-primary); font-size: 0.8rem;">
+                                    <i class="fa-solid fa-temperature-half"></i> {{ ev.temperature }}°C
+                                </div>
+                                {% endif %}
+                                {% if ev.humidity %}
+                                <div style="color: #94a3b8; font-size: 0.8rem;">
+                                    <i class="fa-solid fa-droplet"></i> {{ ev.humidity }}%
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if ev.blockchain_tx_hash %}
+                            <small style="color: var(--brand-warning); font-size: 0.75rem; margin-top: 0.5rem; display: block;">
+                                <i class="fa-brands fa-ethereum"></i> TX: {{ ev.blockchain_tx_hash[:20] }}...
+                            </small>
+                            {% endif %}
+                            {% else %}
+                            <p class="text-muted" style="font-size: 0.8rem; opacity: 0.5;">Awaiting initiation of this stage...</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+            {% else %}
+            <article style="text-align: center; padding: 4rem 2rem;">
+                <i class="fa-solid fa-magnifying-glass-location" style="font-size: 4rem; color: var(--brand-primary); opacity: 0.3; margin-bottom: 2rem;"></i>
+                <h2>Select a Batch</h2>
+                <p class="text-muted">Choose a batch from the sidebar to view its full digital journey and on-chain verification status.</p>
+            </article>
+            {% endif %}
         </div>
-    </form>
-
-    <script>
-        function goToTimeline(e) {
-            e.preventDefault();
-            const val = document.getElementById('batch_select').value;
-            if(val) {
-                window.location.href = "/timeline/" + val;
-            }
-        }
-    </script>
+    </div>
 </section>
-
-{% if current_batch %}
-<section>
-    <article style="padding: 2rem 3rem;">
-        <hgroup style="margin-bottom: 2rem;">
-            <h3>Chain of Custody</h3>
-            <h4>Batch: {{ current_batch.public_id }}</h4>
-        </hgroup>
-        
-        <div class="timeline">
-            <!-- Step 1: Collection -->
-            <div class="timeline-step {% if current_stage_idx > 0 %}completed{% elif current_stage_idx == 0 %}current{% else %}pending{% endif %}">
-                <div class="timeline-icon">{% if current_stage_idx > 0 %}✓{% elif current_stage_idx == 0 %}1{% else %}1{% endif %}</div>
-                <div class="timeline-content">
-                    <h5>Step 1: Collected</h5>
-                    <p>Sample collected and labeled at origin.</p>
-                    {% if 'collection' in events %}
-                    <small>Logged on: {{ events['collection'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['collection'].temperature or 'N/A' }}°C</small>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Step 2: Transport -->
-            <div class="timeline-step {% if current_stage_idx > 1 %}completed{% elif current_stage_idx == 1 %}current{% else %}pending{% endif %}">
-                <div class="timeline-icon">{% if current_stage_idx > 1 %}✓{% elif current_stage_idx == 1 %}2{% else %}2{% endif %}</div>
-                <div class="timeline-content">
-                    <h5>Step 2: Transported</h5>
-                    <p>Safely transported to facility.</p>
-                    {% if 'transport' in events %}
-                    <small>Logged on: {{ events['transport'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['transport'].temperature or 'N/A' }}°C</small>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Step 3: Storage (Received) -->
-            <div class="timeline-step {% if current_stage_idx > 2 %}completed{% elif current_stage_idx == 2 %}current{% else %}pending{% endif %}">
-                <div class="timeline-icon">{% if current_stage_idx > 2 %}✓{% elif current_stage_idx == 2 %}3{% else %}3{% endif %}</div>
-                <div class="timeline-content">
-                    <h5>Step 3: Received / Stored</h5>
-                    <p>Logged at destination laboratory and stored.</p>
-                    {% if 'storage' in events %}
-                    <small>Logged on: {{ events['storage'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['storage'].temperature or 'N/A' }}°C</small>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Step 4: Packaged -->
-            <div class="timeline-step {% if current_stage_idx > 3 %}completed{% elif current_stage_idx == 3 %}current{% else %}pending{% endif %}">
-                <div class="timeline-icon">{% if current_stage_idx > 3 %}✓{% elif current_stage_idx == 3 %}4{% else %}4{% endif %}</div>
-                <div class="timeline-content">
-                    <h5>Step 4: Packaged</h5>
-                    <p>Secured and packaged for end-mile distribution.</p>
-                    {% if 'package' in events %}
-                    <small>Logged on: {{ events['package'].timestamp.strftime('%Y-%m-%d %H:%M') }} | Temp: {{ events['package'].temperature or 'N/A' }}°C</small>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Step 5: Dispose -->
-            <div class="timeline-step {% if current_stage_idx > 4 %}completed{% elif current_stage_idx == 4 %}current{% else %}pending{% endif %}">
-                <div class="timeline-icon">{% if current_stage_idx > 4 %}✓{% elif current_stage_idx == 4 %}5{% else %}5{% endif %}</div>
-                <div class="timeline-content">
-                    <h5>Step 5: Disposed</h5>
-                    <p>Safely destroyed per regulations.</p>
-                    {% if 'dispose' in events %}
-                    <small>Logged on: {{ events['dispose'].timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                    {% endif %}
-                </div>
-            </div>
-            
-        </div>
-    </article>
-</section>
-{% endif %}
 {% endblock %}

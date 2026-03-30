@@ -1,59 +1,107 @@
 {% extends "base.html" %}
 
-{% block title %}Batch {{ batch.public_id }} - Detail{% endblock %}
+{% block title %}Batch Detail - {{ batch.public_id }}{% endblock %}
 
 {% block content %}
-<section>
-    <hgroup>
-        <h2>Batch: {{ batch.public_id }}</h2>
-        <h3>{{ batch.name }} | Type: {{ batch.batch_type | capitalize }} | Origin: {{ batch.origin }}</h3>
-    </hgroup>
-    <p>Registered on: <strong>{{ batch.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</strong></p>
+<section class="fade-in">
+    <article>
+        <header>
+            <h2>Batch: {{ batch.public_id }}</h2>
+            <p style="color: var(--brand-primary); font-weight: 600; margin: 0;">
+                {{ batch.name }} | {{ batch.batch_type | capitalize }} | Origin: {{ batch.origin }}
+            </p>
+        </header>
 
-    {% if batch.blockchain_tx_hash %}
-    <details>
-        <summary>Blockchain Proof (Creation)</summary>
-        <code>Tx Hash: {{ batch.blockchain_tx_hash }}</code>
-    </details>
-    {% endif %}
+        <div class="grid">
+            <div>
+                <strong>Registration Date:</strong><br>
+                <span class="text-muted">{{ batch.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+            </div>
+            <div>
+                {% if batch.blockchain_tx_hash %}
+                <strong>Blockchain Proof:</strong><br>
+                <code style="font-size: 0.75rem; color: var(--brand-warning);">{{ batch.blockchain_tx_hash[:20] }}...</code>
+                {% else %}
+                <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-muted);">Local Only</span>
+                {% endif %}
+            </div>
+            <div>
+                <strong>Cold Chain Integrity:</strong><br>
+                <span class="badge" style="background: {% if integrity_status == 'Pass' %}rgba(46, 204, 113, 0.2){% else %}rgba(231, 76, 60, 0.2){% endif %}; color: {% if integrity_status == 'Pass' %}#2ecc71{% else %}#e74c3c{% endif %}; border: 1px solid currentColor;">
+                    {{ integrity_status }}
+                </span>
+                <small style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+                    Limits: {{ threshold.min }}°C to {{ threshold.max }}°C
+                </small>
+            </div>
+        </div>
 
-    <div class="grid">
-        <button id="btn-predict" onclick="predictShelfLife('{{ batch.public_id }}')">Predict Shelf-Life (AI)</button>
-        <button id="btn-advise" class="secondary" onclick="getPreservationAdvice('{{ batch.public_id }}')">Get Preservation Advice (RAG)</button>
-    </div>
+        <div style="margin-top: 2.5rem;">
+            <h5>🧬 AI Analysis & Intelligence</h5>
+            <div class="grid">
+                <div>
+                    <button id="btn-predict" class="primary-btn full-width" onclick="predictShelfLife('{{ batch.public_id }}')">
+                        Predict Shelf-Life (AI)
+                    </button>
+                    <small class="text-muted" style="display: block; margin-top: 0.5rem; text-align: center;">
+                        Determined by environmental condition & stressors.
+                    </small>
+                </div>
+                <div>
+                    <button id="btn-advise" class="secondary outline full-width" onclick="getPreservationAdvice('{{ batch.public_id }}')">
+                        Get Preservation Advice (RAG)
+                    </button>
+                    <small class="text-muted" style="display: block; margin-top: 0.5rem; text-align: center;">
+                        Drug-specific guidelines for transport & storage.
+                    </small>
+                </div>
+                <div>
+                    <a href="{{ url_for('batch_report', public_id=batch.public_id) }}" target="_blank" role="button" class="contrast outline full-width">
+                        Generate Official Report
+                    </a>
+                    <small class="text-muted" style="display: block; margin-top: 0.5rem; text-align: center;">
+                        Downloadable blockchain audit certificate.
+                    </small>
+                </div>
+            </div>
+        </div>
 
-    <div id="result-box" style="display:none; margin-top:1rem;"></div>
+        <div id="result-box" style="display:none; margin-top: 2rem; padding: 1.5rem; background: rgba(0, 242, 255, 0.05); border: 1px solid var(--brand-primary); border-radius: 12px; animation: fadeInUp 0.4s ease;">
+        </div>
+    </article>
 
-    <hr>
-    <h3>Event History</h3>
+    <h3 style="margin-top: 3rem;">Chain of Custody (Events)</h3>
     {% if events %}
     <figure>
-        <table role="grid">
+        <table>
             <thead>
                 <tr>
-                    <th>Event Type</th>
+                    <th>Stage</th>
                     <th>Location</th>
-                    <th>Temp (C)</th>
-                    <th>Humidity (%)</th>
+                    <th>Temp/Hum</th>
                     <th>Timestamp</th>
-                    <th>Remarks</th>
                     <th>Blockchain Tx</th>
                 </tr>
             </thead>
             <tbody>
                 {% for event in events %}
                 <tr>
-                    <td>{{ event.event_type | capitalize }}</td>
+                    <td><strong>{{ event.event_type | capitalize }}</strong></td>
                     <td>{{ event.location or '-' }}</td>
-                    <td>{{ event.temperature or '-' }}</td>
-                    <td>{{ event.humidity or '-' }}</td>
-                    <td>{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td>{{ event.remarks or '-' }}</td>
+                    <td>
+                        {% if event.temperature or event.humidity %}
+                        <span style="color: var(--brand-primary);">{{ event.temperature }}°C</span> / 
+                        <span style="color: #bbb;">{{ event.humidity }}%</span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td><small>{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</small></td>
                     <td>
                         {% if event.blockchain_tx_hash %}
-                        <code style="font-size:0.7em;">{{ event.blockchain_tx_hash[:14] }}...</code>
+                        <code style="font-size:0.7rem; color: var(--brand-warning);">{{ event.blockchain_tx_hash[:12] }}...</code>
                         {% else %}
-                        <em>Local only</em>
+                        <em style="font-size:0.8rem; color: var(--text-muted);">Local</em>
                         {% endif %}
                     </td>
                 </tr>
@@ -62,7 +110,12 @@
         </table>
     </figure>
     {% else %}
-    <p>No events logged yet. <a href="{{ url_for('create_event') }}">Add one now.</a></p>
+    <article style="text-align: center;">
+        <p>No lifecycle events logged for this batch yet.</p>
+        {% if current_user.role in ['admin', 'producer'] %}
+        <a href="{{ url_for('create_event') }}" role="button" class="secondary outline">Log First Event</a>
+        {% endif %}
+    </article>
     {% endif %}
 </section>
 {% endblock %}

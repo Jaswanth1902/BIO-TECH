@@ -53,5 +53,30 @@
     "id": "11",
     "tags": ["herb", "oil", "extract", "preservation"],
     "text": "Essential oil extracts from herbs should be stored in dark amber glass bottles at 10–15°C, away from UV light. Oxidation significantly degrades potency within weeks of exposure to air."
+  },
+  {
+    "id": "12",
+    "tags": ["sample", "vaccine", "mrna", "ultra_cold"],
+    "text": "mRNA vaccines must be stored in ultra-low temperature freezers between -90°C and -60°C. Thawed vials must be used within 6 hours and never re-frozen."
+  },
+  {
+    "id": "13",
+    "tags": ["sample", "antibody", "protein", "preservation"],
+    "text": "Monoclonal antibodies should be stored at 2-8°C. Avoid vigorous shaking to prevent protein aggregation and loss of binding affinity; always swirl gently."
+  },
+  {
+    "id": "14",
+    "tags": ["herb", "powder", "lyophilized", "long_term"],
+    "text": "Lyophilized (freeze-dried) biological extracts should be stored at -20°C in vacuum-sealed vials to prevent hygroscopic degradation and maintain enzymatic activity for years."
+  },
+  {
+    "id": "15",
+    "tags": ["general", "safety", "cytotoxic", "disposal"],
+    "text": "Cytotoxic and hazardous biological drugs must be incinerated at temperatures exceeding 1000°C. All handling equipment must be treated as hazardous waste."
+  },
+  {
+    "id": "16",
+    "tags": ["sample", "bioreactor", "cells", "transport"],
+    "text": "Active cell culture samples from bioreactors should be transported in CO2-independent media at 37°C using portable incubators to ensure cell viability remains above 95%."
   }
 ]

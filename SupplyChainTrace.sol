@@ -3,6 +3,9 @@ pragma solidity ^0.8.0;
 
 contract SupplyChainTrace {
     
+    address public owner;
+    mapping(address => bool) public authorizedRegistrars;
+
     struct BatchInfo {
         string publicId;
         string batchType;
@@ -22,8 +25,29 @@ contract SupplyChainTrace {
     
     event BatchCreated(string publicId, string batchType, string origin);
     event EventAdded(string publicId, string eventType, uint256 timestamp);
-    
-    function createBatch(string memory _publicId, string memory _batchType, string memory _origin) public {
+    event RegistrarAdded(address indexed account);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this");
+        _;
+    }
+
+    modifier onlyAuthorized() {
+        require(msg.sender == owner || authorizedRegistrars[msg.sender], "Not authorized");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        authorizedRegistrars[msg.sender] = true;
+    }
+
+    function addRegistrar(address _account) public onlyOwner {
+        authorizedRegistrars[_account] = true;
+        emit RegistrarAdded(_account);
+    }
+
+    function createBatch(string memory _publicId, string memory _batchType, string memory _origin) public onlyAuthorized {
         require(bytes(batches[_publicId].publicId).length == 0, "Batch already exists");
         
         batches[_publicId] = BatchInfo({
@@ -37,7 +61,7 @@ contract SupplyChainTrace {
         emit BatchCreated(_publicId, _batchType, _origin);
     }
     
-    function addEvent(string memory _publicId, string memory _eventType, uint256 _timestamp) public {
+    function addEvent(string memory _publicId, string memory _eventType, uint256 _timestamp) public onlyAuthorized {
         require(bytes(batches[_publicId].publicId).length != 0, "Batch does not exist");
         
         batchEvents[_publicId].push(EventInfo({

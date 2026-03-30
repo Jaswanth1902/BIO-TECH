@@ -1,16 +1,25 @@
 <dialog id="chat-modal">
-    <article>
-        <header>
-            <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('chat-modal').removeAttribute('open')"></a>
-            Smart Supply Chain Assistant
+    <article style="max-width: 650px; border-radius: 24px; border: 1px solid var(--brand-primary); box-shadow: 0 0 50px rgba(0, 242, 255, 0.15);">
+        <header style="background: rgba(0, 242, 255, 0.05); border-bottom: 1px solid var(--glass-border); padding: 1.5rem;">
+            <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('chat-modal').removeAttribute('open')" style="color: var(--brand-primary);"></a>
+            <h4 style="margin: 0; color: var(--brand-primary); display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-robot"></i> Bio-Tech AI Assistant
+            </h4>
         </header>
-        <div id="chat-history" style="height: 300px; overflow-y: auto; margin-bottom: 20px; padding: 10px; border: 1px solid var(--muted-border-color); border-radius: 5px;">
-            <p><em>Assistant:</em> Hello! I'm your Bio-Tech Traceability Assistant. How can I help you today?</p>
+
+        <div id="chat-history">
+            <p class="ai-msg">
+                <i class="fa-solid fa-sparkles"></i> 
+                Hello! I am your <strong>Bio-Tech Traceability Assistant</strong>. I can help with preservation tips, batch status, or regulatory guidelines. How can I assist you?
+            </p>
         </div>
-        <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();">
+
+        <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();" style="margin-top: 1rem;">
             <div class="grid">
-                <input type="text" id="chat-input" placeholder="Type your question..." required autocomplete="off">
-                <button type="submit">Send</button>
+                <input type="text" id="chat-input" placeholder="Query knowledge base (e.g. 'how to store herb extracts')..." required autocomplete="off" style="margin-bottom: 0;">
+                <button type="submit" class="primary-btn" style="padding: 0 !important; width: 60px;">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
             </div>
         </form>
     </article>

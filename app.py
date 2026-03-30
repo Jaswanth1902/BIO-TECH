@@ -1,16 +1,34 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
+from functools import wraps
+from flask import abort
 from config import Config
 from models import db, User, Batch, Event
 from blockchain_helper import BlockchainHelper
 from datetime import datetime
 import os
 import pickle
+import json
 import numpy as np
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# --- Biological Stability Thresholds ---
+THRESHOLDS = {
+    'vaccine': {'min': 2, 'max': 8},
+    'sample':  {'max': 4, 'min': -80},
+    'herb':    {'max': 25, 'min': 0},
+    'food':    {'max': 5, 'min': 0}
+}
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Pre-load RAG Model for performance
+print("Loading AI Models...")
+rag_model = SentenceTransformer('all-MiniLM-L6-v2')
+print("AI Models Loaded.")
 
 db.init_app(app)
 login_manager = LoginManager(app)
@@ -18,15 +36,35 @@ login_manager.login_view = 'login'
 
 b_helper = BlockchainHelper()
 
+# --- RBAC Decorator ---
+def roles_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return redirect(url_for('login'))
+            if current_user.role not in roles:
+                flash(f"Unauthorized: This action requires {', '.join(roles)} permissions.", 'error')
+                return redirect(url_for('dashboard'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 # Initialize DB
 with app.app_context():
     db.create_all()
-    # Create default admin user if not exists
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', role='admin')
-        admin.set_password('admin123')
-        db.session.add(admin)
-        db.session.commit()
+    # Create default users for RBAC testing
+    users_to_create = [
+        {'username': 'admin', 'password': 'admin123', 'role': 'admin'},
+        {'username': 'producer1', 'password': 'producer123', 'role': 'producer'},
+        {'username': 'staff1', 'password': 'staff123', 'role': 'staff'}
+    ]
+    for u_data in users_to_create:
+        if not User.query.filter_by(username=u_data['username']).first():
+            user = User(username=u_data['username'], role=u_data['role'])
+            user.set_password(u_data['password'])
+            db.session.add(user)
+    db.session.commit()
 
 @login_manager.user_loader
 def load_user(id):
@@ -58,6 +96,7 @@ def logout():
 
 @app.route('/batches/create', methods=['GET', 'POST'])
 @login_required
+@roles_required('admin', 'producer')
 def create_batch():
     if request.method == 'POST':
         public_id = request.form['public_id']
@@ -92,13 +131,37 @@ def batch_detail(public_id):
     batch = Batch.query.filter_by(public_id=public_id).first_or_404()
     events = batch.events.order_by(Event.timestamp.desc()).all()
     
+    # Calculate Integrity
+    threshold = THRESHOLDS.get(batch.batch_type, {'max': 100, 'min': -100})
+    excursions = [e for e in events if e.temperature is not None and (e.temperature < threshold['min'] or e.temperature > threshold['max'])]
+    integrity_status = "Pass" if not excursions else "Fail"
+    
     # Optional blockchain verification
     chain_events = b_helper.get_events(public_id) if b_helper.is_connected() else []
     
-    return render_template('batch_detail.html', batch=batch, events=events, chain_events=chain_events)
+    return render_template('batch_detail.html', batch=batch, events=events, chain_events=chain_events, integrity_status=integrity_status, threshold=threshold)
+
+@app.route('/batches/report/<public_id>')
+@login_required
+def batch_report(public_id):
+    batch = Batch.query.filter_by(public_id=public_id).first_or_404()
+    events = batch.events.order_by(Event.timestamp.asc()).all()
+    
+    threshold = THRESHOLDS.get(batch.batch_type, {'max': 100, 'min': -100})
+    excursions = [e for e in events if e.temperature is not None and (e.temperature < threshold['min'] or e.temperature > threshold['max'])]
+    integrity_status = "COMPLIANT" if not excursions else "EXCURSION DETECTED"
+    
+    return render_template('report.html', 
+                         batch=batch, 
+                         events=events, 
+                         integrity_status=integrity_status, 
+                         threshold=threshold,
+                         excursion_count=len(excursions),
+                         now=datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
 
 @app.route('/events/create', methods=['GET', 'POST'])
 @login_required
+@roles_required('admin', 'producer')
 def create_event():
     batches = Batch.query.all()
     
@@ -130,6 +193,13 @@ def create_event():
         
         if event_type not in allowed_events:
             flash(f"Invalid sequence! Cannot log '{event_type}' after '{current_state}'.", 'error')
+            return redirect(url_for('create_event'))
+            
+        # Data Validation: Sensor Sanity Checks
+        if temperature is not None and (temperature < -100 or temperature > 100):
+            flash("Abnormal temperature detected! Please check sensor calibration.", 'warning')
+        if humidity is not None and (humidity < 0 or humidity > 100):
+            flash("Invalid humidity reading. Must be between 0 and 100%.", 'error')
             return redirect(url_for('create_event'))
             
         timestamp_int = int(datetime.utcnow().timestamp())
@@ -210,12 +280,11 @@ def advise_preservation(public_id):
         if not os.path.exists(app.config['EMBEDDINGS_PATH']):
             return jsonify({'error': 'RAG Knowledge base not built.'}), 404
             
-        # Mock Context collection
+        # Context collection
         query = f"preserve {batch.batch_type} {batch.name} produced in {batch.origin}"
         
-        # In an actual deployment, you preload this model on startup
-        model = SentenceTransformer('all-MiniLM-L6-v2')
-        q_emb = model.encode([query])
+        # Using pre-loaded model
+        q_emb = rag_model.encode([query])
         
         kb_embs = np.load(app.config['EMBEDDINGS_PATH'])
         with open(app.config['IDS_PATH'], 'r') as f:
@@ -296,12 +365,8 @@ def chat():
     try:
         import json
         import numpy as np
-        from sentence_transformers import SentenceTransformer
-        from sklearn.metrics.pairwise import cosine_similarity
-        
         if os.path.exists(app.config['EMBEDDINGS_PATH']):
-            model = SentenceTransformer('all-MiniLM-L6-v2')
-            q_emb = model.encode([question])
+            q_emb = rag_model.encode([question])
             kb_embs = np.load(app.config['EMBEDDINGS_PATH'])
             
             with open(app.config['IDS_PATH'], 'r') as f:

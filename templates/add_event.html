@@ -1,117 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Log New Event - Supply Chain{% endblock %}
+{% block title %}Log Event - Bio-Tech Traceability{% endblock %}
 
 {% block content %}
-<article>
-    <header>
-        <h2>Log Supply Chain Event</h2>
-        <p>Record a new event (transit, storage, testing) for an existing batch.</p>
-    </header>
-    <form method="POST">
-        <label for="batch_id">Select Batch
-            <select id="batch_id" name="batch_id" required>
-                <option value="" disabled selected>Choose a batch...</option>
-                {% for batch in batches %}
-                <option value="{{ batch.id }}">{{ batch.public_id }} - {{ batch.name }}</option>
-                {% endfor %}
-            </select>
-        </label>
+<section class="fade-in" style="max-width: 900px; margin: 0 auto;">
+    <hgroup>
+        <h1>Lifecycle Event Logging</h1>
+        <p>Record a new transition or environmental reading for a batch.</p>
+    </hgroup>
 
-        <div class="grid">
-            <label for="event_type">Event Type
-                <select id="event_type" name="event_type" required>
-                    <!-- Options populated by JS based on selected batch -->
-                </select>
-            </label>
-            <label for="location">Location
-                <input type="text" id="location" name="location" placeholder="e.g. Warehouse B" required>
-            </label>
-        </div>
+    <article>
+        <header>
+            <h3 style="margin-bottom: 0;"><i class="fa-solid fa-list-check" style="margin-right: 12px; color: var(--brand-primary);"></i>Event Specifics</h3>
+            <p class="text-muted" style="margin-bottom: 0;">Select a batch and appropriate stage to advance the chain.</p>
+        </header>
 
-        <div class="grid" id="env-grid">
-            <label for="temperature">Temperature (deg C)
-                <input type="number" step="0.1" id="temperature" name="temperature" placeholder="e.g. 4.5">
-            </label>
-            <label for="humidity">Humidity (%)
-                <input type="number" step="0.1" id="humidity" name="humidity" placeholder="e.g. 60.0">
-            </label>
-        </div>
+        <form action="{{ url_for('create_event') }}" method="post">
+            <div class="grid">
+                <div>
+                    <label for="batch_id">
+                        Select Targeted Batch
+                        <select id="batch_id" name="batch_id" onchange="updateEventOptions()" required>
+                            <option value="">-- Choose Batch --</option>
+                            {% for batch in batches %}
+                            <option value="{{ batch.id }}" data-current="{{ batch_states[batch.id] or 'none' }}">
+                                {{ batch.name }} ({{ batch.public_id }}) — Currently: {{ (batch_states[batch.id] or 'initialized') | capitalize }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </label>
 
-        <label for="remarks">Remarks
-            <textarea id="remarks" name="remarks" placeholder="Any additional notes..."></textarea>
-        </label>
+                    <label for="event_type">
+                        Next Lifecycle Stage
+                        <select id="event_type" name="event_type" required>
+                            <option value="">-- Select Batch First --</option>
+                        </select>
+                    </label>
 
-        <button type="submit" id="submit_btn">Record Event on Blockchain</button>
-    </form>
-</article>
+                    <label for="location">
+                        Event Location
+                        <input type="text" id="location" name="location" placeholder="e.g. Storage Unit A, Cold Trans-1" required>
+                    </label>
+                </div>
+
+                <div>
+                    <div class="grid">
+                        <label for="temperature">
+                            Temperature (°C)
+                            <input type="number" id="temperature" name="temperature" step="0.1" placeholder="e.g. -20.5">
+                        </label>
+                        <label for="humidity">
+                            Humidity (%)
+                            <input type="number" id="humidity" name="humidity" step="0.1" placeholder="e.g. 55.0">
+                        </label>
+                    </div>
+
+                    <label for="remarks">
+                        Verification Remarks
+                        <textarea id="remarks" name="remarks" rows="4" placeholder="Log any observations or regulatory notes here..."></textarea>
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; border-top: 1px dashed var(--glass-border); padding-top: 1.5rem; text-align: center;">
+                <button type="submit" class="primary-btn" style="min-width: 280px;">
+                    Append to Blockchain <i class="fa-solid fa-cloud-arrow-up" style="margin-left: 8px;"></i>
+                </button>
+            </div>
+        </form>
+    </article>
+</section>
 
 <script>
-    const batchStates = {{ batch_states | tojson | safe }};
-    const optionsMap = {
-        'collection': 'Collection (Step 1)',
-        'transport': 'Transport (Step 2)',
-        'storage': 'Storage / Shelf (Step 3)',
-        'package': 'Packaging (Step 4)',
-        'dispose': 'Disposal (Step 5)'
-    };
-    
-    function toggleEnvGrid() {
+    function updateEventOptions() {
+        const batchSelect = document.getElementById('batch_id');
         const eventSelect = document.getElementById('event_type');
-        const envGrid = document.getElementById('env-grid');
-        if (eventSelect.value === 'collection' || eventSelect.value === 'dispose') {
-            envGrid.style.display = 'none';
-        } else {
-            envGrid.style.display = 'grid'; // Pico.css grid layout
-        }
-    }
-
-    document.getElementById('batch_id').addEventListener('change', function() {
-        const batchId = this.value;
-        const currentState = batchStates[batchId];
-        const eventSelect = document.getElementById('event_type');
-        const submitBtn = document.getElementById('submit_btn');
+        const selectedOption = batchSelect.options[batchSelect.selectedIndex];
         
-        eventSelect.innerHTML = ''; // Clear current options
-        
-        let allowedEvents = [];
-        if (!currentState) {
-            allowedEvents = ['collection'];
-        } else if (currentState === 'collection') {
-            allowedEvents = ['transport'];
-        } else if (currentState === 'transport') {
-            allowedEvents = ['storage'];
-        } else if (currentState === 'storage') {
-            allowedEvents = ['package'];
-        } else if (currentState === 'package') {
-            allowedEvents = ['dispose'];
-        } else if (currentState === 'dispose' || currentState === 'test') {
-            allowedEvents = [];
+        if (!selectedOption.value) {
+            eventSelect.innerHTML = '<option value="">-- Select Batch First --</option>';
+            return;
         }
+
+        const currentState = selectedOption.getAttribute('data-current');
+        let allowed = [];
         
-        if (allowedEvents.length === 0) {
-            const opt = document.createElement('option');
-            opt.value = "";
-            opt.text = "Batch lifecycle is fully complete (Disposed).";
-            eventSelect.appendChild(opt);
-            submitBtn.disabled = true;
-        } else {
-            submitBtn.disabled = false;
-            allowedEvents.forEach(val => {
-                const opt = document.createElement('option');
-                opt.value = val;
-                opt.text = optionsMap[val];
-                eventSelect.appendChild(opt);
-            });
-        }
-        toggleEnvGrid();
-    });
+        if (currentState === 'none' || currentState === 'initialized') allowed = [['collection', '📦 Collection']];
+        else if (currentState === 'collection') allowed = [['transport', '🚚 Transport']];
+        else if (currentState === 'transport') allowed = [['storage', '❄️ Storage']];
+        else if (currentState === 'storage') allowed = [['package', '🩹 Packaging']];
+        else if (currentState === 'package') allowed = [['dispose', '🗑️ Final Disposal']];
 
-    document.getElementById('event_type').addEventListener('change', toggleEnvGrid);
-
-    // Handle back button / cached page selection state
-    if(document.getElementById('batch_id').value) {
-        document.getElementById('batch_id').dispatchEvent(new Event('change'));
+        eventSelect.innerHTML = allowed.map(ev => `<option value="${ev[0]}">${ev[1]}</option>`).join('') || '<option value="">Chain Completed</option>';
     }
 </script>
 {% endblock %}

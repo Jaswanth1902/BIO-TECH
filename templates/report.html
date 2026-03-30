@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Biotech Traceability Certificate - {{ batch.public_id }}</title>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; margin: 0; }
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; padding: 40px; max-width: 900px; margin: auto; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        .header { text-align: center; border-bottom: 3px solid #00f2ff; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: #008080; text-transform: uppercase; letter-spacing: 2px; }
+        .header p { margin: 5px 0; font-size: 0.9em; color: #666; }
+        .status-box { text-align: center; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 2px solid #ccc; background: #f9f9f9; }
+        .status-compliant { border-color: #2ecc71; color: #27ae60; background: #f0fff4; }
+        .status-excursion { border-color: #e74c3c; color: #c0392b; background: #fff5f5; }
+        .section { margin-bottom: 30px; }
+        .section-title { font-weight: bold; font-size: 1.1em; border-bottom: 1px solid #ddd; margin-bottom: 10px; padding-bottom: 5px; color: #444; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
+        th { background: #f4f4f4; }
+        .footer { margin-top: 50px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 0.8em; color: #888; text-align: center; }
+        .qr-placeholder { width: 80px; height: 80px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; margin: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Traceability Compliance Certificate</h1>
+        <p>Issued by Bio-Tech Supply Chain Ledger Registry</p>
+    </div>
+
+    <div class="status-box {% if integrity_status == 'COMPLIANT' %}status-compliant{% else %}status-excursion{% endif %}">
+        <h2 style="margin:0;">{{ integrity_status }}</h2>
+        <p style="margin:5px 0;">Safety Validation: {{ batch.batch_type | capitalize }} Requirements</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Batch Information</div>
+        <div class="grid">
+            <div>
+                <strong>Batch ID:</strong> {{ batch.public_id }}<br>
+                <strong>Scientific Name:</strong> {{ batch.name }}<br>
+                <strong>Category:</strong> {{ batch.batch_type | capitalize }}
+            </div>
+            <div>
+                <strong>Point of Origin:</strong> {{ batch.origin }}<br>
+                <strong>Registration Date:</strong> {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
+                <strong>Security Proof:</strong> {{ batch.blockchain_tx_hash[:25] }}...
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Environmental Integrity Thresholds</div>
+        <p>The following parameters were utilized to validate biological stability:</p>
+        <ul>
+            <li><strong>Temperature Window:</strong> {{ threshold.min }}°C to {{ threshold.max }}°C</li>
+            <li><strong>Current Performance:</strong> {{ excursion_count }} Excursion Detected</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Full Audit Trail (Chain of Custody)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Phase</th>
+                    <th>Location</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>Blockchain Tx</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.event_type | capitalize }}</td>
+                    <td>{{ event.location }}</td>
+                    <td>{{ event.temperature }}°C</td>
+                    <td>{{ event.humidity }}%</td>
+                    <td><code style="font-size:0.8em;">{{ event.blockchain_tx_hash[:15] }}...</code></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        <div class="qr-placeholder" style="font-size: 8px;">SECURE QR HOOK</div>
+        <p>THIS DOCUMENT IS CRYPTOGRAPHICALLY SECURED AND PERSONALLY VERIFIED BY THE BIO-TECH SUPPLY CHAIN ADMIN.</p>
+        <p>Generated on: {{ now }} | Report No: BTC-{{ batch.id }}-RE</p>
+        <button class="no-print" onclick="window.print()" style="margin-top:20px; padding: 10px 30px; background: #008080; color: white; border: none; border-radius: 5px; cursor: pointer;">Print Official Certificate</button>
+    </div>
+</body>
+</html>
