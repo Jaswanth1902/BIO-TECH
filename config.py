@@ -11,7 +11,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Blockchain Config
-    GANACHE_URL = os.environ.get('GANACHE_URL') or 'http://127.0.0.1:8545'
+    GANACHE_URL = os.environ.get('GANACHE_URL') or 'http://127.0.0.1:7545'
     CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS') or ''  # Will be populated after deployment
     
     # ML & RAG Config

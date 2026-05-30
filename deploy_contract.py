@@ -14,7 +14,7 @@ import os
 from web3 import Web3
 from solcx import compile_standard, install_solc
 
-GANACHE_URL = os.environ.get('GANACHE_URL', 'http://127.0.0.1:8545')
+GANACHE_URL = os.environ.get('GANACHE_URL', 'http://127.0.0.1:7545')
 SOL_FILE    = os.path.join(os.path.dirname(__file__), 'SupplyChainTrace.sol')
 ABI_OUT     = os.path.join(os.path.dirname(__file__), 'contract_abi.json')
 ENV_FILE    = os.path.join(os.path.dirname(__file__), '.env')
@@ -42,8 +42,17 @@ def main():
 
     print("[3/4] Deploying to Ganache...")
     w3 = Web3(Web3.HTTPProvider(GANACHE_URL))
+    if not w3.is_connected() and ("127.0.0.1" in GANACHE_URL or "localhost" in GANACHE_URL):
+        fallback_port = "8545" if "7545" in GANACHE_URL else "7545"
+        fallback_url = GANACHE_URL.replace("7545", fallback_port).replace("8545", fallback_port)
+        print(f"    Ganache not connected on {GANACHE_URL}. Trying fallback: {fallback_url}")
+        fallback_w3 = Web3(Web3.HTTPProvider(fallback_url))
+        if fallback_w3.is_connected():
+            w3 = fallback_w3
+            print(f"    Connected to fallback Ganache on {fallback_url}")
+
     if not w3.is_connected():
-        print("ERROR: Cannot connect to Ganache. Make sure it is running on", GANACHE_URL)
+        print("ERROR: Cannot connect to Ganache. Make sure Ganache GUI (7545) or CLI (8545) is running!")
         return
 
     w3.eth.default_account = w3.eth.accounts[0]

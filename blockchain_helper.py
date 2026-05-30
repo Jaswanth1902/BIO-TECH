@@ -5,28 +5,53 @@ import os
 
 class BlockchainHelper:
     def __init__(self):
-        self.w3 = Web3(Web3.HTTPProvider(Config.GANACHE_URL))
+        self.w3 = None
         self.contract = None
-        self.account = None
         self.abi = None
+        self._try_connect()
+
+    def _try_connect(self):
+        # If already connected and contract loaded, no need to reconnect
+        if self.w3 and self.w3.is_connected() and self.contract:
+            return True
+
+        # Try primary GANACHE_URL
+        self.w3 = Web3(Web3.HTTPProvider(Config.GANACHE_URL))
         
-        # Load ABI if exists
+        # If not connected and on localhost, try the other standard port (7545 <-> 8545)
+        if not self.w3.is_connected() and ("127.0.0.1" in Config.GANACHE_URL or "localhost" in Config.GANACHE_URL):
+            fallback_port = "8545" if "7545" in Config.GANACHE_URL else "7545"
+            fallback_url = Config.GANACHE_URL.replace("7545", fallback_port).replace("8545", fallback_port)
+            fallback_w3 = Web3(Web3.HTTPProvider(fallback_url))
+            if fallback_w3.is_connected():
+                self.w3 = fallback_w3
+
+        if not self.w3.is_connected():
+            return False
+
+        # Load ABI if exists and contract address is configured
         abi_path = os.path.join(os.path.dirname(__file__), 'contract_abi.json')
         if os.path.exists(abi_path) and Config.CONTRACT_ADDRESS:
-            with open(abi_path, 'r') as f:
-                self.abi = json.load(f)
-            # Use checksum address
-            checksum_address = self.w3.to_checksum_address(Config.CONTRACT_ADDRESS)
-            self.contract = self.w3.eth.contract(address=checksum_address, abi=self.abi)
-            
-            # Use the first account in Ganache as default
-            if self.w3.is_connected() and len(self.w3.eth.accounts) > 0:
-                self.w3.eth.default_account = self.w3.eth.accounts[0]
+            try:
+                with open(abi_path, 'r') as f:
+                    self.abi = json.load(f)
+                # Use checksum address
+                checksum_address = self.w3.to_checksum_address(Config.CONTRACT_ADDRESS)
+                self.contract = self.w3.eth.contract(address=checksum_address, abi=self.abi)
+                
+                # Use the first account in Ganache as default
+                if len(self.w3.eth.accounts) > 0:
+                    self.w3.eth.default_account = self.w3.eth.accounts[0]
+                return True
+            except Exception as e:
+                print(f"[BlockchainHelper] Error loading contract: {e}")
+        return False
 
     def is_connected(self):
-        return self.w3.is_connected()
+        return self._try_connect()
 
     def create_batch_on_chain(self, public_id, batch_type, origin):
+        self._try_connect()
         if not self.contract:
             return None
         
@@ -40,6 +65,7 @@ class BlockchainHelper:
             return None
 
     def add_event_on_chain(self, public_id, event_type, timestamp_int):
+        self._try_connect()
         if not self.contract:
             return None
         
@@ -53,6 +79,7 @@ class BlockchainHelper:
             return None
 
     def get_batch_info(self, public_id):
+        self._try_connect()
         if not self.contract:
             return None
         try:
@@ -61,8 +88,9 @@ class BlockchainHelper:
             return None
 
     def get_events(self, public_id):
+        self._try_connect()
         if not self.contract:
-            return None
+            return []
         try:
             return self.contract.functions.getEvents(public_id).call()
         except:

@@ -11,7 +11,6 @@ import os
 import pickle
 import json
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # --- Biological Stability Thresholds ---
@@ -25,10 +24,17 @@ THRESHOLDS = {
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Pre-load RAG Model for performance
-print("Loading AI Models...")
-rag_model = SentenceTransformer('all-MiniLM-L6-v2')
-print("AI Models Loaded.")
+# Lazy loaded RAG Model
+_rag_model_instance = None
+
+def get_rag_model():
+    global _rag_model_instance
+    if _rag_model_instance is None:
+        print("[AI RAG] Loading SentenceTransformer('all-MiniLM-L6-v2') lazily...")
+        from sentence_transformers import SentenceTransformer
+        _rag_model_instance = SentenceTransformer('all-MiniLM-L6-v2')
+        print("[AI RAG] Model loaded successfully.")
+    return _rag_model_instance
 
 db.init_app(app)
 login_manager = LoginManager(app)
@@ -50,6 +56,50 @@ def roles_required(*roles):
         return decorated_function
     return decorator
 
+# Function to pre-populate mock data for demonstration
+def prepopulate_sample_data():
+    if Batch.query.first():
+        return
+        
+    print("[Sample Data] Pre-populating database with diverse biological sample batches...")
+    
+    # 1. mRNA Vaccine
+    b1 = Batch(public_id='VAC-MRNA-99', batch_type='vaccine', name='mRNA SARS-CoV-2 Vaccine Batch 99', origin='BioLabs Frankfurt')
+    db.session.add(b1)
+    db.session.flush()
+    e1_1 = Event(batch_id=b1.id, event_type='collection', location='Frankfurt Lab', temperature=-75.0, humidity=35.0, remarks='Harvested and immediately deep-frozen.')
+    e1_2 = Event(batch_id=b1.id, event_type='transport', location='Air Freight Cargo', temperature=-78.0, humidity=40.0, remarks='Dry ice transshipment container.')
+    e1_3 = Event(batch_id=b1.id, event_type='storage', location='National Distribution Depot', temperature=-76.0, humidity=38.0, remarks='Monitored ultra-low temperature vault.')
+    db.session.add_all([e1_1, e1_2, e1_3])
+    
+    # 2. Ayurvedic Herb
+    b2 = Batch(public_id='HRB-TULSI-04', batch_type='herb', name='Organic Holy Basil (Tulsi) Batch 04', origin='Himalayan Farms Rishikesh')
+    db.session.add(b2)
+    db.session.flush()
+    e2_1 = Event(batch_id=b2.id, event_type='collection', location='Rishikesh Processing Center', temperature=18.5, humidity=45.0, remarks='Standard herbal harvest.')
+    e2_2 = Event(batch_id=b2.id, event_type='transport', location='Thermostated Transit Truck', temperature=22.0, humidity=50.0, remarks='Secured road cargo with temperature control.')
+    db.session.add_all([e2_1, e2_2])
+    
+    # 3. Ebola Sample
+    b3 = Batch(public_id='SMP-EBO-105', batch_type='sample', name='Ebolavirus Reference Specimen 105', origin='CDC Atlanta BSL-4 Facility')
+    db.session.add(b3)
+    db.session.flush()
+    e3_1 = Event(batch_id=b3.id, event_type='collection', location='CDC Extraction Lab', temperature=-80.0, humidity=20.0, remarks='Extracted reference strain stored in cryogenic vault.')
+    e3_2 = Event(batch_id=b3.id, event_type='transport', location='Cold-chain Courier', temperature=-78.5, humidity=22.0, remarks='Sealed biohazard carrier.')
+    e3_3 = Event(batch_id=b3.id, event_type='storage', location='National Virological Vault', temperature=-80.0, humidity=20.0, remarks='BSL-4 cryogenic archives.')
+    db.session.add_all([e3_1, e3_2, e3_3])
+    
+    # 4. Pasteurized Fresh Milk (Fails Integrity)
+    b4 = Batch(public_id='FOD-MILK-77', batch_type='food', name='Organic Pasteurized Whole Milk Batch 77', origin='Dairy Greens Bangalore')
+    db.session.add(b4)
+    db.session.flush()
+    e4_1 = Event(batch_id=b4.id, event_type='collection', location='Milking Facility', temperature=3.0, humidity=65.0, remarks='Stored in cooling tank.')
+    e4_2 = Event(batch_id=b4.id, event_type='transport', location='Regional Supply Van', temperature=12.5, humidity=70.0, remarks='Transit refrigeration unit failed for 2 hours! Excursion recorded.')
+    db.session.add_all([e4_1, e4_2])
+    
+    db.session.commit()
+    print("[Sample Data] Database successfully pre-populated!")
+
 # Initialize DB
 with app.app_context():
     db.create_all()
@@ -65,10 +115,13 @@ with app.app_context():
             user.set_password(u_data['password'])
             db.session.add(user)
     db.session.commit()
+    
+    # Pre-populate sample batches and events if empty
+    prepopulate_sample_data()
 
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return db.session.get(User, int(id))
 
 @app.route('/')
 @login_required
@@ -254,7 +307,7 @@ def predict_shelf_life(public_id):
         )
         prediction = model.predict(features)[0]
         
-        rem_days = int(round(prediction))
+        rem_days = max(0, int(round(prediction)))
         
         if rem_days > 7:
             risk = "Safe"
@@ -283,8 +336,8 @@ def advise_preservation(public_id):
         # Context collection
         query = f"preserve {batch.batch_type} {batch.name} produced in {batch.origin}"
         
-        # Using pre-loaded model
-        q_emb = rag_model.encode([query])
+        # Using lazy-loaded RAG model
+        q_emb = get_rag_model().encode([query])
         
         kb_embs = np.load(app.config['EMBEDDINGS_PATH'])
         with open(app.config['IDS_PATH'], 'r') as f:
@@ -366,7 +419,7 @@ def chat():
         import json
         import numpy as np
         if os.path.exists(app.config['EMBEDDINGS_PATH']):
-            q_emb = rag_model.encode([question])
+            q_emb = get_rag_model().encode([question])
             kb_embs = np.load(app.config['EMBEDDINGS_PATH'])
             
             with open(app.config['IDS_PATH'], 'r') as f:
