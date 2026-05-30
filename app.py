@@ -563,6 +563,11 @@ def timeline_batch(public_id):
                            stages=stages,
                            current_policy=current_policy)
 
+@app.route('/academy')
+@login_required
+def academy():
+    return render_template('academy.html')
+
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():

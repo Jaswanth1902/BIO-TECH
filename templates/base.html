@@ -24,6 +24,7 @@
         <ul>
             {% if current_user.is_authenticated %}
             <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap" style="margin-right: 6px;"></i>Academic Center</a></li>
             <li><a href="{{ url_for('timeline') }}">Market Timeline</a></li>
             {% if current_user.role in ['admin', 'producer'] %}
             <li><a href="{{ url_for('create_batch') }}">Register Batch</a></li>

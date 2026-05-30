@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Learning Center - Bio-Tech Supply Chain{% endblock %}
+
+{% block content %}
+<section class="fade-in">
+    <hgroup>
+        <h1>🧬 Academic Learning & Science Center</h1>
+        <h3>Explore the biochemistry, smart contracts, and mathematical models driving the platform</h3>
+    </hgroup>
+
+    <div class="grid" style="grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
+        
+        <!-- ================= LEFT COLUMN: INTERACTIVE SIMULATOR ================= -->
+        <div>
+            <article class="simulator-card">
+                <header>
+                    <i class="fa-solid fa-flask" style="color: var(--brand-primary); font-size: 1.6rem; margin-right: 10px;"></i>
+                    <strong style="font-size: 1.25rem;">Biological Degradation Sandbox</strong>
+                </header>
+                
+                <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Manipulate environmental parameters in real-time to simulate clinical cold-chain excursions and observe how the ML/Smart-Contract layer registers the stability status.
+                </p>
+
+                <!-- Input Controls -->
+                <div class="grid">
+                    <div>
+                        <label for="sim-product-type">Select Material Category:</label>
+                        <select id="sim-product-type" onchange="runSimulation()">
+                            <option value="vaccine" selected>mRNA SARS-CoV-2 Vaccine</option>
+                            <option value="herb">Ayurvedic Botanical Herb (Tulsi)</option>
+                            <option value="sample">BSL-4 Pathogen Sample (Ebola)</option>
+                            <option value="food">Pasteurized Whole Milk</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="sim-elapsed-days">Elapsed Days in Cold Chain:</label>
+                        <input type="range" id="sim-elapsed-days" min="1" max="60" value="10" oninput="updateRangeLabel('days-val', this.value); runSimulation();">
+                        <span style="font-size: 0.85rem; color: var(--brand-primary);">Days: <strong id="days-val">10</strong></span>
+                    </div>
+                </div>
+
+                <div class="grid" style="margin-top: 1rem;">
+                    <div>
+                        <label for="sim-temp">Temperature Exposure (°C):</label>
+                        <input type="range" id="sim-temp" min="-100" max="50" value="4" oninput="updateRangeLabel('temp-val', this.value); runSimulation();">
+                        <span style="font-size: 0.85rem; color: var(--brand-primary);">Temp: <strong id="temp-val">4</strong>°C</span>
+                    </div>
+                    <div>
+                        <label for="sim-humidity">Relative Humidity (%):</label>
+                        <input type="range" id="sim-humidity" min="0" max="100" value="40" oninput="updateRangeLabel('hum-val', this.value); runSimulation();">
+                        <span style="font-size: 0.85rem; color: var(--brand-primary);">Humidity: <strong id="hum-val">40</strong>%</span>
+                    </div>
+                </div>
+
+                <hr style="margin: 2rem 0;">
+
+                <!-- Real-time Simulation Outputs -->
+                <h4>Simulation Output Indicators</h4>
+                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border);">
+                        <small class="text-muted" style="display:block; margin-bottom: 0.3rem;">On-Chain Compliance Status</small>
+                        <span id="sim-status-badge" class="badge" style="font-size: 1.1rem; padding: 6px 16px;">PASS</span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border);">
+                        <small class="text-muted" style="display:block; margin-bottom: 0.3rem;">AI Predicted Shelf-Life</small>
+                        <strong id="sim-prediction-val" style="font-size: 1.25rem; color: var(--brand-primary); display:block;">20 Days</strong>
+                        <span id="sim-risk-badge" class="badge" style="font-size: 0.7rem; padding: 2px 8px; margin-top: 4px;">SAFE</span>
+                    </div>
+                </div>
+
+                <!-- Biochemical Description (Dynamic Text) -->
+                <div id="sim-explanation-box" style="margin-top: 1.5rem; padding: 1.2rem; border-radius: 12px; background: rgba(0,242,255,0.03); border-left: 4px solid var(--brand-primary);">
+                    <h5>🔬 Spoilage & Biochemical Analysis</h5>
+                    <p id="sim-explanation-text" style="font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                        Loading biochemical simulation profile...
+                    </p>
+                </div>
+            </article>
+        </div>
+
+        <!-- ================= RIGHT COLUMN: BIOLOGICAL ENVELOPES & REFERENCE ================= -->
+        <div>
+            <!-- Biological Reference Visuals (User requested: Yess) -->
+            <article class="ref-card">
+                <header>
+                    <i class="fa-solid fa-list-check" style="color: var(--brand-success); font-size: 1.4rem; margin-right: 10px;"></i>
+                    <strong>Legal Biological Envelopes</strong>
+                </header>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Scientific thresholds enforced in our smart contracts and database routines:
+                </p>
+                
+                <figure style="margin: 0; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                    <table style="font-size: 0.75rem; margin: 0;">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Temp (°C)</th>
+                                <th>Hum (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>mRNA Vaccine</strong></td>
+                                <td><span style="color: var(--brand-primary);">2 to 8</span></td>
+                                <td>N/A</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tulsi Herb</strong></td>
+                                <td><span style="color: var(--brand-primary);">0 to 25</span></td>
+                                <td><span style="color: var(--brand-primary);">&lt; 55%</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>BSL-4 Specimen</strong></td>
+                                <td><span style="color: var(--brand-primary);">-80 to 4</span></td>
+                                <td>N/A</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pasteur Milk</strong></td>
+                                <td><span style="color: var(--brand-primary);">0 to 5</span></td>
+                                <td>N/A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </figure>
+            </article>
+
+            <!-- Solidity Smart Contract Visualizer -->
+            <article class="math-card">
+                <header>
+                    <i class="fa-solid fa-shield-halved" style="color: var(--brand-warning); font-size: 1.3rem; margin-right: 10px;"></i>
+                    <strong>Smart Contract Ledger Core</strong>
+                </header>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    Solidity core verifying sequence enforcement to prevent supply chain tampering:
+                </p>
+                <pre style="font-size: 0.7rem; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); overflow-x: auto; color: #a5d6ff;">
+function addEvent(string memory _publicId, string memory _eventType, uint256 _timestamp) public onlyAuthorized {
+    require(bytes(batches[_publicId].publicId).length != 0, "NotExist");
+    batchEvents[_publicId].push(EventInfo({
+        eventType: _eventType,
+        timestamp: _timestamp,
+        recorder: msg.sender
+    }));
+    emit EventAdded(_publicId, _eventType, _timestamp);
+}</pre>
+            </article>
+        </div>
+
+    </div>
+
+    <!-- ================= ALGORITHM MATHEMATICAL CORE VISUALIZERS ================= -->
+    <h2 style="margin-top: 3rem; font-family: var(--font-heading);">🧮 Mathematical & Predictive Intelligence Core</h2>
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+        
+        <!-- Linear Regression Decay Model -->
+        <article class="math-card">
+            <header>
+                <i class="fa-solid fa-chart-line" style="color: var(--brand-primary); font-size: 1.4rem; margin-right: 10px;"></i>
+                <strong>Adaptive Shelf-Life Model (Linear Regression)</strong>
+            </header>
+            
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                Our predictive AI module uses a multivariate **Linear Regression** model to estimate remaining shelf life. The model uses features representing cumulative stressors:
+            </p>
+            
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border); margin: 1rem 0;">
+                <code style="font-size: 1.15rem; color: var(--brand-primary); font-weight: 700;">Remaining Days = &beta;₀ - (&beta;₁ &times; T_avg) - (&beta;₂ &times; T_max) - (&beta;₃ &times; Hum_avg) - Elapsed Days</code>
+            </div>
+
+            <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem;">
+                <li><strong>&beta;₀ (Base Shelf-life):</strong> Initial shelf life allocation (60 days for medical/cryo, 30 days for foods).</li>
+                <li><strong>Temperature Stressors (&beta;₁, &beta;₂):</strong> Penalizes exposure above safe biological baselines.</li>
+                <li><strong>Relative Humidity Stressors (&beta;₃):</strong> Evaluated dynamically for herbs (preventing volatile terpene oil degradation).</li>
+                <li><strong>Elapsed Days:</strong> Time elapsed since the batch was registered at origin.</li>
+            </ul>
+        </article>
+
+        <!-- RAG Vector Similarity -->
+        <article class="math-card">
+            <header>
+                <i class="fa-solid fa-compass" style="color: var(--brand-success); font-size: 1.4rem; margin-right: 10px;"></i>
+                <strong>RAG Expert Search (Vector Cosine Similarity)</strong>
+            </header>
+            
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                Preservation advice and chatbot queries are resolved via **Retrieval-Augmented Generation (RAG)** using the SentenceTransformer `all-MiniLM-L6-v2` model:
+            </p>
+
+            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border); margin: 1rem 0;">
+                <code style="font-size: 1.2rem; color: var(--brand-success); font-weight: 700;">cos(&theta;) = ( A &middot; B ) / ( ||A|| &times; ||B|| )</code>
+            </div>
+
+            <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem;">
+                <li><strong>Vector Embedding Conversion:</strong> Natural language queries and knowledge entries are mapped to 384-dimensional dense vectors.</li>
+                <li><strong>Cosine Similarity Value (cos(&theta;)):</strong> Ranges from `-1.0` to `1.0` (where values `&gt; 0.15` indicate high semantic relationship).</li>
+                <li><strong>Instant Retrieval:</strong> The system matches the prompt with the most relevant scientific preservation standard, returning immediate, clinical advice.</li>
+            </ul>
+        </article>
+
+    </div>
+</section>
+
+<!-- ================= CLIENT-SIDE SIMULATOR SCRIPT ================= -->
+<script>
+function updateRangeLabel(labelId, value) {
+    document.getElementById(labelId).innerText = value;
+}
+
+function runSimulation() {
+    const type = document.getElementById('sim-product-type').value;
+    const temp = parseFloat(document.getElementById('sim-temp').value);
+    const humidity = parseFloat(document.getElementById('sim-humidity').value);
+    const elapsed = parseInt(document.getElementById('sim-elapsed-days').value);
+
+    let baseShelfLife = 60;
+    let compliance = "PASS";
+    let explanation = "";
+    let tempPenalty = 0;
+    let humidityPenalty = 0;
+
+    if (type === "vaccine") {
+        baseShelfLife = 60;
+        // Normal range: 2 to 8
+        if (temp < 2 || temp > 8) {
+            compliance = "FAIL";
+            if (temp > 8) {
+                explanation = "❌ THERMAL EXCURSION WARNING: Temperature exceeded the safe biological storage threshold (2°C - 8°C). Warm exposure accelerates the hydrolytic cleavage of the unstable single-stranded mRNA phosphate backbone, rendering the lipid nanoparticles (LNPs) inactive and vaccine batch ineffective.";
+            } else {
+                explanation = "❌ FREEZING EXCURSION WARNING: Sub-zero temperature recorded. The structural stability of the liquid adjuvant/carrier can freeze-crystallize, compromising dosage integrity. (Note: While ultra-cold vitrification at -75°C is safe, partial freezing in standard 2-8°C refrigerators creates crystal anomalies).";
+            }
+        } else {
+            explanation = "✅ COLD CHAIN COMPLIANT: The mRNA vaccine is safely held within the official WHO/FDA biological stability envelope (2°C to 8°C). Dry ice transshipment and refrigeration protocols are functioning perfectly.";
+        }
+        tempPenalty = Math.max(0, temp - 8) * 1.5 + Math.max(0, 2 - temp) * 0.8;
+
+    } else if (type === "herb") {
+        baseShelfLife = 45;
+        // Normal: Temp 0 to 25, Hum < 55%
+        let tempViolated = temp < 0 || temp > 25;
+        let humViolated = humidity > 55;
+        if (tempViolated || humViolated) {
+            compliance = "FAIL";
+            if (humViolated && tempViolated) {
+                explanation = "❌ CRITICAL DEGRADATION WARNING: Both heat (&gt;25°C) and high humidity (&gt;55%) thresholds have been breached. High moisture index initiates rapid mold spores (Aspergillus) and microbial fermentation, while high temperature oxidizes volatile aromatic terpenes, causing total loss of Ayurvedic active phyo-compounds.";
+            } else if (humViolated) {
+                explanation = "❌ HUMIDITY EXCURSION WARNING: Relative humidity exceeded 55%. High moisture absorption in dry botanical storage rooms degrades Tulsi leaves, creating enzymatic decay and organic mold contamination.";
+            } else {
+                explanation = "❌ OXIDATION WARNING: Ambient temperature exceeded 25°C. Excessive heat evaporates volatile essential medicinal oils (eugenol and carvacrol) from the herb tissue, decreasing therapeutic potency.";
+            }
+        } else {
+            explanation = "✅ BOTANICAL COMPLIANT: The Ayurvedic herbs are stored in a dry, temperate environment. Botanical active ingredients and essential oils are perfectly preserved.";
+        }
+        tempPenalty = Math.max(0, temp - 25) * 0.7;
+        humidityPenalty = Math.max(0, humidity - 55) * 0.3;
+
+    } else if (type === "sample") {
+        baseShelfLife = 60;
+        // Normal: -80 to 4
+        if (temp < -80 || temp > 4) {
+            compliance = "FAIL";
+            explanation = "❌ PATHOGEN COLLAPSE WARNING: Temperature exceeded BSL-4 cryogenic threshold (Pathogens must be kept below 4°C, or ideally cryo-vitrified below -70°C). Thermal rise causes specimen recrystallization, breaking the cell membranes of vitrified biosafety specimens and destroying diagnostic validity.";
+        } else {
+            explanation = "✅ CRYOPRESERVATION SECURED: BSL-4 Pathogen sample is fully stabilized. Biological structure is vitrified or chilled within approved microbiological parameters, ensuring sample integrity and operator safety.";
+        }
+        tempPenalty = Math.max(0, temp - 4) * 2.0;
+
+    } else if (type === "food") {
+        baseShelfLife = 30;
+        // Normal: 0 to 5
+        if (temp < 0 || temp > 5) {
+            compliance = "FAIL";
+            if (temp > 5) {
+                explanation = "❌ EXCURSION WARNING: Fresh pasteurized milk must be stored below 5°C. Exposures above 5°C trigger exponential multiplication of lactic acid bacteria (Lactobacillus acidophilus), fermenting lactose into lactic acid, resulting in souring and protein curdling.";
+            } else {
+                explanation = "❌ FREEZING EXCURSION WARNING: Fresh milk has dropped below 0°C, causing milk fat crystallization and emulsion breaking upon thawing, yielding a watery texture.";
+            }
+        } else {
+            explanation = "✅ FRESHNESS PRESERVED: Pasteurized milk is kept safely at standard food-chain refrigeration limits (0°C to 5°C). Enzymatic and bacterial spoiling rates are completely halted.";
+        }
+        tempPenalty = Math.max(0, temp - 5) * 1.8;
+    }
+
+    // AI Shelf Life calculation (Regression approximation)
+    let prediction = baseShelfLife - tempPenalty - humidityPenalty - elapsed;
+    prediction = Math.max(0, Math.round(prediction));
+
+    let riskLabel = "SAFE";
+    let riskClass = "risk-safe";
+    if (prediction <= 2) {
+        riskLabel = "CRITICAL";
+        riskClass = "risk-crit";
+    } else if (prediction <= 7) {
+        riskLabel = "AT RISK";
+        riskClass = "risk-warn";
+    }
+
+    // Update UI elements
+    const statusBadge = document.getElementById('sim-status-badge');
+    statusBadge.innerText = compliance;
+    statusBadge.className = compliance === "PASS" ? "badge" : "badge risk-crit";
+    statusBadge.style.background = compliance === "PASS" ? "var(--brand-success)" : "var(--brand-danger)";
+    statusBadge.style.color = "#fff";
+
+    document.getElementById('sim-prediction-val').innerText = `${prediction} Days`;
+    
+    const riskBadge = document.getElementById('sim-risk-badge');
+    riskBadge.innerText = riskLabel;
+    riskBadge.className = `badge ${riskClass}`;
+    
+    document.getElementById('sim-explanation-text').innerHTML = explanation;
+}
+
+// Initial trigger
+document.addEventListener('DOMContentLoaded', () => {
+    runSimulation();
+});
+</script>
+
+<style>
+/* Glowing states & custom sliders inside style.css but included here as a fallback */
+.simulator-card {
+    border-color: rgba(0, 242, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 242, 255, 0.05);
+}
+.risk-safe { background: rgba(46,182,125,0.15) !important; color: var(--brand-success) !important; border: 1px solid var(--brand-success) !important; }
+.risk-warn { background: rgba(246,201,14,0.15) !important; color: var(--brand-warning) !important; border: 1px solid var(--brand-warning) !important; }
+.risk-crit { background: rgba(255,71,87,0.15) !important; color: var(--brand-danger) !important; border: 1px solid var(--brand-danger) !important; }
+pre {
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+}
+</style>
+{% endblock %}
