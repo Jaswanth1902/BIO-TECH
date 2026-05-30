@@ -38,7 +38,19 @@
                 <div class="modern-timeline" style="margin-top: 3rem;">
                     {% for stage in stages %}
                     {% set ev = events.get(stage) %}
-                    <div class="timeline-item {% if ev %}active{% endif %}">
+                    {% set is_excursion = False %}
+                    {% if ev and ev.temperature is not none %}
+                        {% if current_policy %}
+                            {% if ev.temperature < current_policy.min_temp or ev.temperature > current_policy.max_temp %}
+                                {% set is_excursion = True %}
+                            {% endif %}
+                        {% else %}
+                            {% if ev.temperature < -100 or ev.temperature > 100 %}
+                                {% set is_excursion = True %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    <div class="timeline-item {% if ev %}{% if is_excursion %}excursion{% else %}active{% endif %}{% endif %}">
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <h4>{{ stage | capitalize }}</h4>

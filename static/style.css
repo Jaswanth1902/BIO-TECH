@@ -281,6 +281,33 @@ input:focus {
     box-shadow: 0 0 0 4px rgba(0, 242, 255, 0.1) !important;
 }
 
+/* ---- Micro-Animations & Glows ---- */
+@keyframes fadeInSlide {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeInSlide 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(46, 182, 125, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(46, 182, 125, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(46, 182, 125, 0); }
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+}
+
+/* Hover effects for buttons/cards */
+button:hover, [role="button"]:hover {
+    box-shadow: 0 0 15px var(--brand-primary);
+}
+
 /* ---- Flash Messages ---- */
 .alert {
     padding: 1rem 1.5rem;
@@ -324,6 +351,14 @@ input:focus {
     background: var(--brand-primary);
     border-color: var(--brand-primary);
     box-shadow: 0 0 15px var(--brand-primary);
+    animation: pulse-green 2s infinite;
+}
+
+.timeline-item.excursion .timeline-marker {
+    background: var(--brand-danger);
+    border-color: var(--brand-danger);
+    box-shadow: 0 0 15px var(--brand-danger);
+    animation: pulse-red 2s infinite;
 }
 
 .timeline-content h4 {

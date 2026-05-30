@@ -35,6 +35,27 @@
 
     <hr>
 
+    <!-- Interactive Analytics & Visual Charts -->
+    <h2 style="margin-top: 2rem;">System Analytics</h2>
+    <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <article style="text-align: center;">
+            <h5 style="color: var(--brand-primary); margin-bottom: 1rem;">Cold Chain Compliance</h5>
+            <canvas id="complianceChart" style="max-height: 250px;"></canvas>
+        </article>
+
+        <article style="text-align: center;">
+            <h5 style="color: var(--brand-primary); margin-bottom: 1rem;">Batch Distribution</h5>
+            <canvas id="distributionChart" style="max-height: 250px;"></canvas>
+        </article>
+
+        <article style="text-align: center;">
+            <h5 style="color: var(--brand-primary); margin-bottom: 1rem;">AI Risk Level Assessment</h5>
+            <canvas id="riskChart" style="max-height: 250px;"></canvas>
+        </article>
+    </div>
+
+    <hr>
+
     {% if current_user.role in ['admin', 'producer'] %}
     <div class="grid" style="margin-top: 2rem;">
         <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
@@ -66,9 +87,215 @@
         </article>
         {% endfor %}
     </div>
+
+    <!-- Live Ledger Explorer Panel -->
+    <hr>
+    <details class="fade-in" style="margin-top: 2rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem 1.5rem;" open>
+        <summary style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--brand-primary); font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-link"></i> Live Ledger Explorer
+            <span id="web3-status-indicator" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: var(--brand-success); box-shadow: 0 0 8px var(--brand-success); margin-left: auto; animation: pulse 2s infinite;"></span>
+            <span id="web3-status-text" style="font-size: 0.8rem; color: var(--brand-success); font-weight: normal; margin-left: 5px;">Node: Connected</span>
+        </summary>
+
+        <div style="margin-top: 1.5rem;">
+            <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 1rem;">
+                <div><small>Latest Block: <strong id="latest-block" style="color: var(--brand-primary);">Loading...</strong></small></div>
+                <div style="text-align: right;"><small>Gas Limit: <strong id="gas-limit">Loading...</strong></small></div>
+            </div>
+
+            <figure>
+                <table id="ledger-table">
+                    <thead>
+                        <tr>
+                            <th>Block #</th>
+                            <th>Block Hash</th>
+                            <th>Age</th>
+                            <th>Txns</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledger-body">
+                        <tr><td colspan="4" style="text-align: center;">Querying local Web3 node...</td></tr>
+                    </tbody>
+                </table>
+            </figure>
+        </div>
+    </details>
 </section>
+
+<!-- Transaction Details Modal -->
+<dialog id="tx-modal">
+    <article style="max-width: 700px; border-radius: 24px; border: 1px solid var(--brand-primary);">
+        <header>
+            <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('tx-modal').removeAttribute('open')"></a>
+            <h4 style="color: var(--brand-primary);"><i class="fa-solid fa-file-contract"></i> Transaction Details</h4>
+        </header>
+        <div id="tx-details-content">Loading...</div>
+    </article>
+</dialog>
 
 <!-- Include Chatbot Modal -->
 {% include "chat.html" %}
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    function fetchBlockchainStatus() {
+        fetch('{{ url_for("blockchain_status") }}')
+            .then(res => res.json())
+            .then(data => {
+                const indicator = document.getElementById('web3-status-indicator');
+                const statusText = document.getElementById('web3-status-text');
+                const tbody = document.getElementById('ledger-body');
+
+                if (data.connected) {
+                    indicator.style.backgroundColor = 'var(--brand-success)';
+                    indicator.style.boxShadow = '0 0 8px var(--brand-success)';
+                    statusText.textContent = 'Node: Connected';
+                    statusText.style.color = 'var(--brand-success)';
+
+                    document.getElementById('latest-block').textContent = data.latest_block;
+                    document.getElementById('gas-limit').textContent = data.gas_limit;
+
+                    tbody.innerHTML = '';
+                    data.recent_blocks.forEach(block => {
+                        const tr = document.createElement('tr');
+                        const age = Math.floor(Date.now()/1000) - block.timestamp;
+                        tr.innerHTML = `
+                            <td><span class="badge" style="background: rgba(0,242,255,0.1); color: var(--brand-primary);">${block.number}</span></td>
+                            <td style="font-family: monospace; color: var(--text-muted); cursor: pointer;" onclick="alert('Block Hash: ${block.hash}')">${block.hash.substring(0, 20)}...</td>
+                            <td>${age} sec ago</td>
+                            <td>${block.tx_count}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    indicator.style.backgroundColor = 'var(--brand-danger)';
+                    indicator.style.boxShadow = '0 0 8px var(--brand-danger)';
+                    statusText.textContent = 'Node: Disconnected';
+                    statusText.style.color = 'var(--brand-danger)';
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--brand-danger);">Blockchain not reachable. Start Ganache.</td></tr>`;
+                }
+            })
+            .catch(err => {
+                console.error("Web3 Error:", err);
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch blockchain data on load
+        fetchBlockchainStatus();
+
+        // Refresh blockchain ledger every 10 seconds
+        setInterval(fetchBlockchainStatus, 10000);
+
+        // Global Chart Defaults
+        Chart.defaults.color = '#94a3b8'; // --text-muted
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+
+        // Data injected from Flask
+        const compliantCount = {{ compliant_count }};
+        const failedCount = {{ failed_count }};
+
+        const distributionData = {{ distribution|tojson }};
+        const distLabels = Object.keys(distributionData).map(k => k.charAt(0).toUpperCase() + k.slice(1));
+        const distValues = Object.values(distributionData);
+
+        const riskDataObj = {{ risk_data|tojson }};
+
+        // Chart 1: Compliance Gauge (Doughnut)
+        const ctxCompliance = document.getElementById('complianceChart').getContext('2d');
+        new Chart(ctxCompliance, {
+            type: 'doughnut',
+            data: {
+                labels: ['Compliant', 'Excursion'],
+                datasets: [{
+                    data: [compliantCount, failedCount],
+                    backgroundColor: [
+                        'rgba(46, 182, 125, 0.2)', // --brand-success
+                        'rgba(255, 71, 87, 0.2)'   // --brand-danger
+                    ],
+                    borderColor: [
+                        '#2eb67d',
+                        '#ff4757'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Chart 2: Distribution Bar Chart
+        const ctxDist = document.getElementById('distributionChart').getContext('2d');
+        new Chart(ctxDist, {
+            type: 'bar',
+            data: {
+                labels: distLabels,
+                datasets: [{
+                    label: 'Active Batches',
+                    data: distValues,
+                    backgroundColor: 'rgba(0, 242, 255, 0.2)', // --brand-primary
+                    borderColor: '#00f2ff',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Chart 3: AI Risk Level Pie Chart
+        const ctxRisk = document.getElementById('riskChart').getContext('2d');
+        new Chart(ctxRisk, {
+            type: 'pie',
+            data: {
+                labels: ['Safe', 'At Risk', 'Critical'],
+                datasets: [{
+                    data: [riskDataObj['Safe'], riskDataObj['At Risk'], riskDataObj['Critical']],
+                    backgroundColor: [
+                        'rgba(46, 182, 125, 0.2)', // Safe: Green
+                        'rgba(246, 201, 14, 0.2)', // At Risk: Amber
+                        'rgba(255, 71, 87, 0.2)'   // Critical: Red
+                    ],
+                    borderColor: [
+                        '#2eb67d',
+                        '#f6c90e',
+                        '#ff4757'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    });
+</script>
 
 {% endblock %}

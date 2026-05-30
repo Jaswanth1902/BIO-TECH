@@ -20,7 +20,7 @@
             <div>
                 {% if batch.blockchain_tx_hash %}
                 <strong>Blockchain Proof:</strong><br>
-                <code style="font-size: 0.75rem; color: var(--brand-warning);">{{ batch.blockchain_tx_hash[:20] }}...</code>
+                <a href="javascript:void(0)" onclick="showTxDetails('{{ batch.blockchain_tx_hash }}')" style="font-family: monospace; font-size: 0.75rem; color: var(--brand-warning); text-decoration: underline;">{{ batch.blockchain_tx_hash[:20] }}...</a>
                 {% else %}
                 <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-muted);">Local Only</span>
                 {% endif %}
@@ -99,7 +99,7 @@
                     <td><small>{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</small></td>
                     <td>
                         {% if event.blockchain_tx_hash %}
-                        <code style="font-size:0.7rem; color: var(--brand-warning);">{{ event.blockchain_tx_hash[:12] }}...</code>
+                        <a href="javascript:void(0)" onclick="showTxDetails('{{ event.blockchain_tx_hash }}')" style="font-family: monospace; font-size:0.7rem; color: var(--brand-warning); text-decoration: underline;">{{ event.blockchain_tx_hash[:12] }}...</a>
                         {% else %}
                         <em style="font-size:0.8rem; color: var(--text-muted);">Local</em>
                         {% endif %}
@@ -118,4 +118,45 @@
     </article>
     {% endif %}
 </section>
+<!-- Transaction Details Modal -->
+<dialog id="tx-modal">
+    <article style="max-width: 700px; border-radius: 24px; border: 1px solid var(--brand-primary);">
+        <header>
+            <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('tx-modal').removeAttribute('open')"></a>
+            <h4 style="color: var(--brand-primary);"><i class="fa-solid fa-file-contract"></i> Transaction Details</h4>
+        </header>
+        <div id="tx-details-content">Loading...</div>
+    </article>
+</dialog>
+
+<script>
+    function showTxDetails(txHash) {
+        document.getElementById('tx-modal').setAttribute('open', 'true');
+        const contentDiv = document.getElementById('tx-details-content');
+        contentDiv.innerHTML = 'Loading transaction data from Web3 node...';
+
+        fetch(`/api/transaction/${txHash}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    contentDiv.innerHTML = `<div style="color: var(--brand-danger);">${data.error}</div>`;
+                } else {
+                    const statusStr = data.status === 1 ? '<span style="color: var(--brand-success);">Success</span>' : '<span style="color: var(--brand-danger);">Failed</span>';
+                    contentDiv.innerHTML = `
+                        <div class="grid" style="font-family: monospace; font-size: 0.9rem;">
+                            <div><strong>Tx Hash:</strong></div><div style="word-break: break-all; color: var(--brand-primary);">${data.hash}</div>
+                            <div><strong>Block Number:</strong></div><div>${data.block_number}</div>
+                            <div><strong>From:</strong></div><div style="word-break: break-all;">${data.from}</div>
+                            <div><strong>To Contract:</strong></div><div style="word-break: break-all;">${data.to}</div>
+                            <div><strong>Gas Used:</strong></div><div>${data.gas_used}</div>
+                            <div><strong>Status:</strong></div><div>${statusStr}</div>
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                contentDiv.innerHTML = `<div style="color: var(--brand-danger);">Error fetching transaction details.</div>`;
+            });
+    }
+</script>
 {% endblock %}
