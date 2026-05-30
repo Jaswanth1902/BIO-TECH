@@ -29,6 +29,14 @@ class Batch(db.Model):
     events = db.relationship('Event', backref='batch', lazy='dynamic')
     documents = db.relationship('Document', backref='batch', lazy='dynamic')
 
+class ThresholdPolicy(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_type = db.Column(db.String(64), unique=True, nullable=False) # vaccine, herb, sample, food
+    min_temp = db.Column(db.Float, nullable=False)
+    max_temp = db.Column(db.Float, nullable=False)
+    min_humidity = db.Column(db.Float, nullable=True)
+    max_humidity = db.Column(db.Float, nullable=True)
+
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     batch_id = db.Column(db.Integer, db.ForeignKey('batch.id'), index=True, nullable=False)

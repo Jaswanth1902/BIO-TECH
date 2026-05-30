@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Clinical Settings & Policies - Bio-Tech Supply Chain{% endblock %}
+
+{% block content %}
+<section class="fade-in">
+    <hgroup>
+        <h1>Clinical Settings & Policies</h1>
+        <h3>Manage biological stability thresholds for all product categories</h3>
+    </hgroup>
+
+    <div class="dashboard-grid">
+        {% for policy in policies %}
+        <article class="batch-card fade-in">
+            <header style="margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+                <h4 style="color: var(--brand-primary); text-transform: capitalize;"><i class="fa-solid fa-temperature-half"></i> {{ policy.product_type }}</h4>
+            </header>
+
+            <form method="POST" action="{{ url_for('settings') }}">
+                <input type="hidden" name="policy_id" value="{{ policy.id }}">
+
+                <div class="grid">
+                    <div>
+                        <label>Min Temperature (°C)</label>
+                        <input type="number" step="0.1" name="min_temp" value="{{ policy.min_temp }}" required>
+                    </div>
+                    <div>
+                        <label>Max Temperature (°C)</label>
+                        <input type="number" step="0.1" name="max_temp" value="{{ policy.max_temp }}" required>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div>
+                        <label>Min Humidity (%)</label>
+                        <input type="number" step="0.1" name="min_humidity" value="{{ policy.min_humidity if policy.min_humidity is not none else '' }}">
+                    </div>
+                    <div>
+                        <label>Max Humidity (%)</label>
+                        <input type="number" step="0.1" name="max_humidity" value="{{ policy.max_humidity if policy.max_humidity is not none else '' }}">
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn full-width" style="margin-top: 1rem;">
+                    <i class="fa-solid fa-save"></i> Save Thresholds
+                </button>
+            </form>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

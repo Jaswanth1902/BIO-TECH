@@ -108,6 +108,12 @@ function sendChatMessage() {
         });
 }
 
+function submitQuickQuery(queryText) {
+    const input = document.getElementById('chat-input');
+    input.value = queryText;
+    sendChatMessage();
+}
+
 // Allow Enter key to submit chat
 document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');

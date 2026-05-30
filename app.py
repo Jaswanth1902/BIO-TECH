@@ -4,22 +4,15 @@ from werkzeug.security import generate_password_hash
 from functools import wraps
 from flask import abort
 from config import Config
-from models import db, User, Batch, Event
+from models import db, User, Batch, Event, ThresholdPolicy
 from blockchain_helper import BlockchainHelper
 from datetime import datetime
 import os
 import pickle
 import json
 import numpy as np
+import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-
-# --- Biological Stability Thresholds ---
-THRESHOLDS = {
-    'vaccine': {'min': 2, 'max': 8},
-    'sample':  {'max': 4, 'min': -80},
-    'herb':    {'max': 25, 'min': 0},
-    'food':    {'max': 5, 'min': 0}
-}
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -103,6 +96,18 @@ def prepopulate_sample_data():
 # Initialize DB
 with app.app_context():
     db.create_all()
+
+    # Bootstrapping ThresholdPolicy if empty
+    if ThresholdPolicy.query.first() is None:
+        default_thresholds = [
+            ThresholdPolicy(product_type='vaccine', min_temp=2, max_temp=8, min_humidity=0, max_humidity=100),
+            ThresholdPolicy(product_type='sample', min_temp=-80, max_temp=4, min_humidity=0, max_humidity=100),
+            ThresholdPolicy(product_type='herb', min_temp=0, max_temp=25, min_humidity=0, max_humidity=100),
+            ThresholdPolicy(product_type='food', min_temp=0, max_temp=5, min_humidity=0, max_humidity=100)
+        ]
+        db.session.add_all(default_thresholds)
+        db.session.commit()
+
     # Create default users for RBAC testing
     users_to_create = [
         {'username': 'admin', 'password': 'admin123', 'role': 'admin'},
@@ -126,8 +131,68 @@ def load_user(id):
 @app.route('/')
 @login_required
 def dashboard():
-    batches = Batch.query.order_by(Batch.created_at.desc()).limit(10).all()
-    return render_template('dashboard.html', batches=batches)
+    batches = Batch.query.order_by(Batch.created_at.desc()).all()
+    recent_batches = batches[:10]
+
+    # Calculate Cold Chain Compliance
+    compliant_count = 0
+    failed_count = 0
+    distribution = {}
+
+    # Pre-fetch policies for performance
+    policies = {p.product_type: p for p in ThresholdPolicy.query.all()}
+
+    for b in batches:
+        # Distribution logic
+        distribution[b.batch_type] = distribution.get(b.batch_type, 0) + 1
+
+        # Compliance logic
+        policy = policies.get(b.batch_type)
+        if policy:
+            events = b.events.all()
+            excursions = [e for e in events if e.temperature is not None and (e.temperature < policy.min_temp or e.temperature > policy.max_temp)]
+            if excursions:
+                failed_count += 1
+            else:
+                compliant_count += 1
+        else:
+            compliant_count += 1 # Default to compliant if no policy
+
+    # Simple Mock Logic for AI Risk level (as real AI might take too long to run for all batches on dashboard load)
+    # 60% safe, 30% at risk, 10% critical for visual demonstration, or calculate directly using model if preferred.
+    risk_data = {'Safe': 0, 'At Risk': 0, 'Critical': 0}
+    if os.path.exists(app.config['MODEL_PATH']):
+        try:
+            with open(app.config['MODEL_PATH'], 'rb') as f:
+                model = pickle.load(f)
+            for b in batches:
+                events = b.events.all()
+                if not events:
+                    continue
+                temps = [e.temperature for e in events if e.temperature is not None]
+                hums = [e.humidity for e in events if e.humidity is not None]
+                avg_temp = sum(temps) / len(temps) if temps else 25.0
+                max_temp = max(temps) if temps else 25.0
+                avg_hum = sum(hums) / len(hums) if hums else 60.0
+                elapsed_days = (datetime.utcnow() - b.created_at).days
+                pt_encoded = 1 if b.batch_type == 'food' else 0
+
+                features = pd.DataFrame([[avg_temp, max_temp, avg_hum, elapsed_days, pt_encoded]], columns=['avg_temp', 'max_temp', 'avg_humidity', 'elapsed_days', 'product_type'])
+                prediction = model.predict(features)[0]
+                rem_days = max(0, int(round(prediction)))
+
+                if rem_days > 7:
+                    risk_data['Safe'] += 1
+                elif rem_days > 2:
+                    risk_data['At Risk'] += 1
+                else:
+                    risk_data['Critical'] += 1
+        except Exception as e:
+            print("Error loading AI model for dashboard:", e)
+
+    return render_template('dashboard.html', batches=recent_batches,
+                           compliant_count=compliant_count, failed_count=failed_count,
+                           distribution=distribution, risk_data=risk_data)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -146,6 +211,91 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+@roles_required('admin')
+def settings():
+    if request.method == 'POST':
+        policy_id = request.form.get('policy_id')
+        policy = ThresholdPolicy.query.get(policy_id)
+        if policy:
+            policy.min_temp = float(request.form.get('min_temp'))
+            policy.max_temp = float(request.form.get('max_temp'))
+
+            min_humidity = request.form.get('min_humidity')
+            if min_humidity:
+                policy.min_humidity = float(min_humidity)
+            else:
+                policy.min_humidity = None
+
+            max_humidity = request.form.get('max_humidity')
+            if max_humidity:
+                policy.max_humidity = float(max_humidity)
+            else:
+                policy.max_humidity = None
+
+            db.session.commit()
+            flash(f"Thresholds for {policy.product_type} updated successfully.", 'success')
+        else:
+            flash("Policy not found.", 'error')
+        return redirect(url_for('settings'))
+
+    policies = ThresholdPolicy.query.order_by(ThresholdPolicy.product_type).all()
+    return render_template('settings.html', policies=policies)
+
+@app.route('/api/blockchain_status')
+@login_required
+def blockchain_status():
+    if not b_helper.is_connected():
+        return jsonify({'connected': False})
+
+    try:
+        latest_block_num = b_helper.w3.eth.block_number
+        latest_block = b_helper.w3.eth.get_block(latest_block_num)
+
+        # Fetch last 5 blocks
+        blocks = []
+        for i in range(max(0, latest_block_num - 4), latest_block_num + 1):
+            block = b_helper.w3.eth.get_block(i)
+            blocks.append({
+                'number': block.number,
+                'hash': block.hash.hex(),
+                'timestamp': block.timestamp,
+                'tx_count': len(block.transactions)
+            })
+
+        blocks.reverse() # newest first
+
+        return jsonify({
+            'connected': True,
+            'latest_block': latest_block_num,
+            'gas_limit': latest_block.gasLimit,
+            'recent_blocks': blocks
+        })
+    except Exception as e:
+        return jsonify({'connected': False, 'error': str(e)})
+
+@app.route('/api/transaction/<tx_hash>')
+@login_required
+def get_transaction(tx_hash):
+    if not b_helper.is_connected():
+        return jsonify({'error': 'Not connected to blockchain'})
+
+    try:
+        tx = b_helper.w3.eth.get_transaction(tx_hash)
+        receipt = b_helper.w3.eth.get_transaction_receipt(tx_hash)
+
+        return jsonify({
+            'hash': tx.hash.hex(),
+            'block_number': tx.blockNumber,
+            'from': tx['from'],
+            'to': tx.to,
+            'gas_used': receipt.gasUsed,
+            'status': receipt.status
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 @app.route('/batches/create', methods=['GET', 'POST'])
 @login_required
@@ -185,7 +335,12 @@ def batch_detail(public_id):
     events = batch.events.order_by(Event.timestamp.desc()).all()
     
     # Calculate Integrity
-    threshold = THRESHOLDS.get(batch.batch_type, {'max': 100, 'min': -100})
+    policy = ThresholdPolicy.query.filter_by(product_type=batch.batch_type).first()
+    if policy:
+        threshold = {'max': policy.max_temp, 'min': policy.min_temp}
+    else:
+        threshold = {'max': 100, 'min': -100}
+
     excursions = [e for e in events if e.temperature is not None and (e.temperature < threshold['min'] or e.temperature > threshold['max'])]
     integrity_status = "Pass" if not excursions else "Fail"
     
@@ -200,7 +355,12 @@ def batch_report(public_id):
     batch = Batch.query.filter_by(public_id=public_id).first_or_404()
     events = batch.events.order_by(Event.timestamp.asc()).all()
     
-    threshold = THRESHOLDS.get(batch.batch_type, {'max': 100, 'min': -100})
+    policy = ThresholdPolicy.query.filter_by(product_type=batch.batch_type).first()
+    if policy:
+        threshold = {'max': policy.max_temp, 'min': policy.min_temp}
+    else:
+        threshold = {'max': 100, 'min': -100}
+
     excursions = [e for e in events if e.temperature is not None and (e.temperature < threshold['min'] or e.temperature > threshold['max'])]
     integrity_status = "COMPLIANT" if not excursions else "EXCURSION DETECTED"
     
@@ -249,11 +409,20 @@ def create_event():
             return redirect(url_for('create_event'))
             
         # Data Validation: Sensor Sanity Checks
-        if temperature is not None and (temperature < -100 or temperature > 100):
-            flash("Abnormal temperature detected! Please check sensor calibration.", 'warning')
-        if humidity is not None and (humidity < 0 or humidity > 100):
-            flash("Invalid humidity reading. Must be between 0 and 100%.", 'error')
-            return redirect(url_for('create_event'))
+        policy = ThresholdPolicy.query.filter_by(product_type=batch.batch_type).first()
+        if policy:
+            if temperature is not None and (temperature < policy.min_temp or temperature > policy.max_temp):
+                flash(f"Warning: Temperature excursion detected ({temperature}°C is outside the {policy.min_temp}-{policy.max_temp}°C range for {batch.batch_type}).", 'warning')
+
+            if humidity is not None and policy.min_humidity is not None and policy.max_humidity is not None:
+                if humidity < policy.min_humidity or humidity > policy.max_humidity:
+                    flash(f"Warning: Humidity excursion detected ({humidity}% is outside the {policy.min_humidity}-{policy.max_humidity}% range).", 'warning')
+        else:
+            if temperature is not None and (temperature < -100 or temperature > 100):
+                flash("Abnormal temperature detected! Please check sensor calibration.", 'warning')
+            if humidity is not None and (humidity < 0 or humidity > 100):
+                flash("Invalid humidity reading. Must be between 0 and 100%.", 'error')
+                return redirect(url_for('create_event'))
             
         timestamp_int = int(datetime.utcnow().timestamp())
         
@@ -299,7 +468,6 @@ def predict_shelf_life(public_id):
         with open(app.config['MODEL_PATH'], 'rb') as f:
             model = pickle.load(f)
             
-        import pandas as pd
         pt_encoded = 1 if batch.batch_type == 'food' else 0
         features = pd.DataFrame(
             [[avg_temp, max_temp, avg_hum, elapsed_days, pt_encoded]],
@@ -385,12 +553,15 @@ def timeline_batch(public_id):
         if 'dispose' in completed_events:
             current_stage_idx = 5
             
+    current_policy = ThresholdPolicy.query.filter_by(product_type=batch.batch_type).first()
+
     return render_template('timeline.html', 
                            batches=batches, 
                            current_batch=batch,
                            events=completed_events,
                            current_stage_idx=current_stage_idx,
-                           stages=stages)
+                           stages=stages,
+                           current_policy=current_policy)
 
 @app.route('/chat', methods=['POST'])
 @login_required
