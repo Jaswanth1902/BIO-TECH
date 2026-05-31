@@ -9,6 +9,26 @@
         <h3>Real-time monitoring of biological batch lifecycles</h3>
     </hgroup>
 
+    <!-- Role-Based Access Profile Banner -->
+    <div style="margin-bottom: 2rem; padding: 0.8rem 1.2rem; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 0.9rem; color: var(--text-muted);">
+            Logged in as: <strong style="color: var(--text-main);">{{ current_user.username }}</strong>
+        </span>
+        {% if current_user.role == 'admin' %}
+        <span class="badge" style="background: rgba(246, 201, 14, 0.15); color: var(--brand-warning); border: 1px solid var(--brand-warning); font-size: 0.75rem; padding: 4px 12px; border-radius: 20px;">
+            <i class="fa-solid fa-lock" style="margin-right: 6px;"></i> ROLE: ADMINISTRATOR (FULL ACCESS)
+        </span>
+        {% elif current_user.role == 'producer' %}
+        <span class="badge" style="background: rgba(0, 242, 255, 0.15); color: var(--brand-primary); border: 1px solid var(--brand-primary); font-size: 0.75rem; padding: 4px 12px; border-radius: 20px;">
+            <i class="fa-solid fa-tractor" style="margin-right: 6px;"></i> ROLE: BATCH PRODUCER (ORIGINATOR)
+        </span>
+        {% else %}
+        <span class="badge" style="background: rgba(46, 182, 125, 0.15); color: var(--brand-success); border: 1px solid var(--brand-success); font-size: 0.75rem; padding: 4px 12px; border-radius: 20px;">
+            <i class="fa-solid fa-truck-ramp-box" style="margin-right: 6px;"></i> ROLE: LOGISTICS STAFF (AUDITOR)
+        </span>
+        {% endif %}
+    </div>
+
     <!-- Project Vision / Transparency Section -->
     <div class="vision-grid">
         <div class="vision-card">
@@ -56,17 +76,19 @@
 
     <hr>
 
-    {% if current_user.role in ['admin', 'producer'] %}
     <div class="grid" style="margin-top: 2rem;">
-        <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
-        <a href="{{ url_for('create_event') }}" role="button" class="secondary outline">Log New Event</a>
-        <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+        {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
+            <a href="{{ url_for('create_event') }}" role="button" class="secondary outline">Log New Event</a>
+            <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+        {% elif current_user.role == 'producer' %}
+            <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
+            <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+        {% else %}
+            <a href="{{ url_for('create_event') }}" role="button" class="primary-btn">Log New Event</a>
+            <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="grid" style="margin-top: 2rem;">
-        <a href="#chat-modal" role="button" class="contrast outline full-width" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
-    </div>
-    {% endif %}
     
     <h2 style="margin-top: 3rem;">Recent Batches</h2>
     <div class="dashboard-grid">

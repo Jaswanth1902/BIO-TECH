@@ -387,6 +387,10 @@ button:hover, [role="button"]:hover {
 }
 
 /* ---- Academic Center & Simulator Custom Styling ---- */
+dialog {
+    z-index: 1100 !important;
+}
+
 .simulator-card {
     border: 1px solid rgba(0, 242, 255, 0.2) !important;
     background: rgba(10, 25, 47, 0.5) !important;

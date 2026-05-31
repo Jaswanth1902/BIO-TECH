@@ -374,7 +374,7 @@ def batch_report(public_id):
 
 @app.route('/events/create', methods=['GET', 'POST'])
 @login_required
-@roles_required('admin', 'producer')
+@roles_required('admin', 'producer', 'staff')
 def create_event():
     batches = Batch.query.all()
     
