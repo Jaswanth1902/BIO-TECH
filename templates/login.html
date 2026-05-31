@@ -3,15 +3,15 @@
 {% block title %}Portal Login - Bio-Tech Traceability{% endblock %}
 
 {% block content %}
-<section class="fade-in" style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
-    <article style="width: 100%; max-width: 450px; text-align: center;">
+<section class="page-section fade-in login-section">
+    <article>
         <header>
-            <i class="fa-solid fa-shield-halved" style="font-size: 3rem; color: var(--brand-primary); margin-bottom: 1rem;"></i>
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
             <h2>Secure Portal Login</h2>
             <p class="text-muted">Access the Traceability Control Center</p>
         </header>
 
-        <form action="{{ url_for('login') }}" method="post" style="text-align: left;">
+        <form action="{{ url_for('login') }}" method="post">
             <label for="username">
                 Username
                 <input type="text" id="username" name="username" placeholder="Enter username" required>
@@ -22,13 +22,13 @@
                 <input type="password" id="password" name="password" placeholder="Enter password" required>
             </label>
             
-            <button type="submit" class="primary-btn full-width" style="margin-top: 1.5rem;">
+            <button type="submit" class="primary-btn full-width" style="margin-top: 1rem;">
                 Authenticate Session <i class="fa-solid fa-key" style="margin-left: 8px;"></i>
             </button>
         </form>
 
-        <footer style="margin-top: 2rem; border: none; padding: 0;">
-            <p class="text-muted" style="font-size: 0.8rem;">
+        <footer class="login-footer">
+            <p class="text-muted">
                 Authorized personnel only. Sessions are logged on-chain.
             </p>
         </footer>

@@ -3,24 +3,23 @@
 {% block title %}Smart Traceability Timeline - Bio-Tech{% endblock %}
 
 {% block content %}
-<section class="fade-in">
+<section class="page-section fade-in">
     <hgroup>
         <h1>Smart Traceability Timeline</h1>
         <p>Visual Journey of Product Lifecycle & Authenticity</p>
     </hgroup>
 
-    <div class="grid">
-        <aside style="max-width: 320px;">
-            <article style="padding: 1rem;">
+    <div class="layout-sidebar">
+        <aside>
+            <article class="sidebar-card">
                 <header><h5>Select Target Batch</h5></header>
-                <div style="max-height: 50vh; overflow-y: auto;">
+                <div class="batch-list-scroll">
                     {% for b in batches %}
                     <a href="{{ url_for('timeline_batch', public_id=b.public_id) }}" 
-                       class="secondary {% if current_batch and current_batch.id == b.id %}primary-btn{% else %}outline{% endif %}" 
-                       role="button" 
-                       style="margin-bottom: 0.8rem; width: 100%; display: block; text-align: left;">
-                        <i class="fa-solid fa-dna" style="margin-right: 8px;"></i> {{ b.name }}
-                        <small style="display: block; opacity: 0.7; font-size: 0.75rem;">{{ b.public_id }}</small>
+                       class="batch-list-link secondary {% if current_batch and current_batch.id == b.id %}primary-btn{% else %}outline{% endif %}" 
+                       role="button">
+                        <i class="fa-solid fa-dna" aria-hidden="true"></i> {{ b.name }}
+                        <small>{{ b.public_id }}</small>
                     </a>
                     {% endfor %}
                 </div>

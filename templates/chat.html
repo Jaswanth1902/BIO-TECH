@@ -1,31 +1,32 @@
 <dialog id="chat-modal">
     <article style="max-width: 650px; border-radius: 24px; border: 1px solid var(--brand-primary); box-shadow: 0 0 50px rgba(0, 242, 255, 0.15);">
-        <header style="background: rgba(0, 242, 255, 0.05); border-bottom: 1px solid var(--glass-border); padding: 1.5rem;">
+        <header class="card-header" style="background: rgba(0, 242, 255, 0.05);">
             <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('chat-modal').removeAttribute('open')" style="color: var(--brand-primary);"></a>
-            <h4 style="margin: 0; color: var(--brand-primary); display: flex; align-items: center; gap: 12px;">
-                <i class="fa-solid fa-robot"></i> Bio-Tech AI Assistant
-            </h4>
+            <div class="card-header-title">
+                <i class="fa-solid fa-robot"></i>
+                <strong>Bio-Tech AI Assistant</strong>
+            </div>
         </header>
 
         <div id="chat-history">
             <p class="ai-msg">
-                <i class="fa-solid fa-sparkles"></i> 
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 
                 Hello! I am your <strong>Bio-Tech Traceability Assistant</strong>. I can help with preservation tips, batch status, or regulatory guidelines. How can I assist you?
             </p>
         </div>
 
         <!-- Quick Actions Panel -->
-        <div class="chat-quick-actions" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1rem;">
-            <button onclick="submitQuickQuery('How to store Tulsi?')" class="secondary outline" style="font-size: 0.75rem; padding: 0.4rem 0.8rem !important; border-radius: 20px !important;">🌿 How to store Tulsi?</button>
-            <button onclick="submitQuickQuery('Check Vaccine Guidelines')" class="secondary outline" style="font-size: 0.75rem; padding: 0.4rem 0.8rem !important; border-radius: 20px !important;">💉 Check Vaccine Guidelines</button>
-            <button onclick="submitQuickQuery('Audit BSL-4 Protocol')" class="secondary outline" style="font-size: 0.75rem; padding: 0.4rem 0.8rem !important; border-radius: 20px !important;">☣️ Audit BSL-4 Protocol</button>
-            <button onclick="submitQuickQuery('How many batches do we have?')" class="secondary outline" style="font-size: 0.75rem; padding: 0.4rem 0.8rem !important; border-radius: 20px !important;">📊 Check total batches</button>
+        <div class="chat-quick-actions">
+            <button type="button" onclick="submitQuickQuery('How to store Tulsi?')" class="secondary outline">🌿 How to store Tulsi?</button>
+            <button type="button" onclick="submitQuickQuery('Check Vaccine Guidelines')" class="secondary outline">💉 Check Vaccine Guidelines</button>
+            <button type="button" onclick="submitQuickQuery('Audit BSL-4 Protocol')" class="secondary outline">☣️ Audit BSL-4 Protocol</button>
+            <button type="button" onclick="submitQuickQuery('How many batches do we have?')" class="secondary outline">📊 Check total batches</button>
         </div>
 
-        <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();" style="margin-top: 1rem;">
-            <div class="grid">
-                <input type="text" id="chat-input" placeholder="Query knowledge base (e.g. 'how to store herb extracts')..." required autocomplete="off" style="margin-bottom: 0;">
-                <button type="submit" class="primary-btn" style="padding: 0 !important; width: 60px;">
+        <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();">
+            <div class="chat-form-row">
+                <input type="text" id="chat-input" placeholder="Query knowledge base (e.g. 'how to store herb extracts')..." required autocomplete="off">
+                <button type="submit" class="primary-btn" aria-label="Send message">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </div>

@@ -3,14 +3,14 @@
 {% block title %}Dashboard - Bio-Tech Supply Chain{% endblock %}
 
 {% block content %}
-<section class="fade-in">
+<section class="page-section fade-in">
     <hgroup>
         <h1>Bio-Tech Traceability Dashboard</h1>
         <h3>Real-time monitoring of biological batch lifecycles</h3>
     </hgroup>
 
     <!-- Role-Based Access Profile Banner -->
-    <div style="margin-bottom: 2rem; padding: 0.8rem 1.2rem; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
+    <div class="info-banner">
         <span style="font-size: 0.9rem; color: var(--text-muted);">
             Logged in as: <strong style="color: var(--text-main);">{{ current_user.username }}</strong>
         </span>
@@ -56,27 +56,27 @@
     <hr>
 
     <!-- Interactive Analytics & Visual Charts -->
-    <h2 style="margin-top: 2rem;">System Analytics</h2>
-    <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-        <article style="text-align: center;">
-            <h5 style="color: var(--brand-primary); margin-bottom: 1rem;">Cold Chain Compliance</h5>
-            <canvas id="complianceChart" style="max-height: 250px;"></canvas>
+    <h2 class="section-heading">System Analytics</h2>
+    <div class="dashboard-grid">
+        <article class="chart-card">
+            <h5>Cold Chain Compliance</h5>
+            <canvas id="complianceChart"></canvas>
         </article>
 
-        <article style="text-align: center;">
-            <h5 style="color: var(--brand-primary); margin-bottom: 1rem;">Batch Distribution</h5>
-            <canvas id="distributionChart" style="max-height: 250px;"></canvas>
+        <article class="chart-card">
+            <h5>Batch Distribution</h5>
+            <canvas id="distributionChart"></canvas>
         </article>
 
-        <article style="text-align: center;">
-            <h5 style="color: var(--brand-primary); margin-bottom: 1rem;">AI Risk Level Assessment</h5>
-            <canvas id="riskChart" style="max-height: 250px;"></canvas>
+        <article class="chart-card">
+            <h5>AI Risk Level Assessment</h5>
+            <canvas id="riskChart"></canvas>
         </article>
     </div>
 
     <hr>
 
-    <div class="grid" style="margin-top: 2rem;">
+    <div class="action-bar">
         {% if current_user.role == 'admin' %}
             <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
             <a href="{{ url_for('create_event') }}" role="button" class="secondary outline">Log New Event</a>
@@ -90,7 +90,7 @@
         {% endif %}
     </div>
     
-    <h2 style="margin-top: 3rem;">Recent Batches</h2>
+    <h2 class="section-heading">Recent Batches</h2>
     <div class="dashboard-grid">
         {% for batch in batches %}
         <div class="batch-card fade-in">
@@ -112,11 +112,11 @@
 
     <!-- Live Ledger Explorer Panel -->
     <hr>
-    <details class="fade-in" style="margin-top: 2rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem 1.5rem;" open>
-        <summary style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--brand-primary); font-weight: 600; display: flex; align-items: center; gap: 10px;">
+    <details class="fade-in panel-box" open>
+        <summary>
             <i class="fa-solid fa-link"></i> Live Ledger Explorer
-            <span id="web3-status-indicator" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: var(--brand-success); box-shadow: 0 0 8px var(--brand-success); margin-left: auto; animation: pulse 2s infinite;"></span>
-            <span id="web3-status-text" style="font-size: 0.8rem; color: var(--brand-success); font-weight: normal; margin-left: 5px;">Node: Connected</span>
+            <span id="web3-status-indicator" class="status-dot status-dot--ok"></span>
+            <span id="web3-status-text" class="status-text">Node: Connected</span>
         </summary>
 
         <div style="margin-top: 1.5rem;">
@@ -171,10 +171,9 @@
                 const tbody = document.getElementById('ledger-body');
 
                 if (data.connected) {
-                    indicator.style.backgroundColor = 'var(--brand-success)';
-                    indicator.style.boxShadow = '0 0 8px var(--brand-success)';
+                    indicator.className = 'status-dot status-dot--ok';
                     statusText.textContent = 'Node: Connected';
-                    statusText.style.color = 'var(--brand-success)';
+                    statusText.className = 'status-text status-text--ok';
 
                     document.getElementById('latest-block').textContent = data.latest_block;
                     document.getElementById('gas-limit').textContent = data.gas_limit;
@@ -192,10 +191,9 @@
                         tbody.appendChild(tr);
                     });
                 } else {
-                    indicator.style.backgroundColor = 'var(--brand-danger)';
-                    indicator.style.boxShadow = '0 0 8px var(--brand-danger)';
+                    indicator.className = 'status-dot status-dot--err';
                     statusText.textContent = 'Node: Disconnected';
-                    statusText.style.color = 'var(--brand-danger)';
+                    statusText.className = 'status-text status-text--err';
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--brand-danger);">Blockchain not reachable. Start Ganache.</td></tr>`;
                 }
             })

@@ -11,43 +11,45 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <nav class="container-fluid">
-        <ul>
-            <li>
-                <strong>
-                    <a href="{{ url_for('dashboard') }}" class="contrast">
-                        <i class="fa-solid fa-dna" style="margin-right: 8px;"></i>Bio-Tech Supply Chain
+    <header class="site-header">
+        <nav class="container site-nav">
+            <ul class="site-nav-brand">
+                <li>
+                    <strong>
+                        <a href="{{ url_for('dashboard') }}" class="contrast">
+                            <i class="fa-solid fa-dna" aria-hidden="true"></i>Bio-Tech Supply Chain
+                        </a>
+                    </strong>
+                </li>
+            </ul>
+            <ul class="site-nav-links">
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap" style="margin-right: 6px;"></i>Academic Center</a></li>
+                <li><a href="{{ url_for('timeline') }}">Market Timeline</a></li>
+                
+                {% if current_user.role in ['admin', 'producer'] %}
+                <li><a href="{{ url_for('create_batch') }}">Register Batch</a></li>
+                {% endif %}
+                
+                {% if current_user.role in ['admin', 'staff'] %}
+                <li><a href="{{ url_for('create_event') }}">Log Event</a></li>
+                {% endif %}
+                
+                {% if current_user.role == 'admin' %}
+                <li><a href="{{ url_for('settings') }}">Clinical Settings</a></li>
+                {% endif %}
+                <li>
+                    <a href="{{ url_for('logout') }}" role="button" class="secondary outline nav-user-btn">
+                        {{ current_user.username }} <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
                     </a>
-                </strong>
-            </li>
-        </ul>
-        <ul>
-            {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li><a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap" style="margin-right: 6px;"></i>Academic Center</a></li>
-            <li><a href="{{ url_for('timeline') }}">Market Timeline</a></li>
-            
-            {% if current_user.role in ['admin', 'producer'] %}
-            <li><a href="{{ url_for('create_batch') }}">Register Batch</a></li>
-            {% endif %}
-            
-            {% if current_user.role in ['admin', 'staff'] %}
-            <li><a href="{{ url_for('create_event') }}">Log Event</a></li>
-            {% endif %}
-            
-            {% if current_user.role == 'admin' %}
-            <li><a href="{{ url_for('settings') }}">Clinical Settings</a></li>
-            {% endif %}
-            <li>
-                <a href="{{ url_for('logout') }}" role="button" class="secondary outline" style="padding: 0.5rem 1rem;">
-                    {{ current_user.username }} <i class="fa-solid fa-right-from-bracket" style="margin-left: 8px;"></i>
-                </a>
-            </li>
-            {% else %}
-            <li><a href="{{ url_for('login') }}" role="button" class="primary-btn">Portal Login</a></li>
-            {% endif %}
-        </ul>
-    </nav>
+                </li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}" role="button" class="primary-btn">Portal Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
     
     <main class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -64,7 +66,7 @@
         {% block content %}{% endblock %}
     </main>
     
-    <footer>
+    <footer class="site-footer">
         <div class="container">
             <p>© 2026 Bio-Tech Traceability Project</p>
             <small class="text-muted">

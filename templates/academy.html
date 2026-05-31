@@ -3,30 +3,32 @@
 {% block title %}Academic Learning Center - Bio-Tech Supply Chain{% endblock %}
 
 {% block content %}
-<section class="fade-in">
+<section class="page-section fade-in">
     <hgroup>
         <h1>🧬 Academic Learning & Science Center</h1>
         <h3>Explore the biochemistry, smart contracts, and mathematical models driving the platform</h3>
     </hgroup>
 
-    <div class="grid" style="grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
+    <div class="layout-2col">
         
         <!-- ================= LEFT COLUMN: INTERACTIVE SIMULATOR ================= -->
         <div>
             <article class="simulator-card">
-                <header>
-                    <i class="fa-solid fa-flask" style="color: var(--brand-primary); font-size: 1.6rem; margin-right: 10px;"></i>
-                    <strong style="font-size: 1.25rem;">Biological Degradation Sandbox</strong>
+                <header class="card-header">
+                    <div class="card-header-title">
+                        <i class="fa-solid fa-flask" style="color: var(--brand-primary);"></i>
+                        <strong>Biological Degradation Sandbox</strong>
+                    </div>
                 </header>
                 
-                <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 1.5rem;">
+                <p class="text-muted card-lead">
                     Manipulate environmental parameters in real-time to simulate clinical cold-chain excursions and observe how the ML/Smart-Contract layer registers the stability status.
                 </p>
 
                 <!-- Input Controls -->
                 <div class="grid">
-                    <div>
-                        <label for="sim-product-type">Select Material Category:</label>
+                    <div class="form-field">
+                        <label for="sim-product-type">Select Material Category</label>
                         <select id="sim-product-type" onchange="runSimulation()">
                             <option value="vaccine" selected>mRNA SARS-CoV-2 Vaccine</option>
                             <option value="herb">Ayurvedic Botanical Herb (Tulsi)</option>
@@ -34,46 +36,46 @@
                             <option value="food">Pasteurized Whole Milk</option>
                         </select>
                     </div>
-                    <div>
-                        <label for="sim-elapsed-days">Elapsed Days in Cold Chain:</label>
+                    <div class="form-field">
+                        <label for="sim-elapsed-days">Elapsed Days in Cold Chain</label>
                         <input type="range" id="sim-elapsed-days" min="1" max="60" value="10" oninput="updateRangeLabel('days-val', this.value); runSimulation();">
-                        <span style="font-size: 0.85rem; color: var(--brand-primary);">Days: <strong id="days-val">10</strong></span>
+                        <span class="range-readout">Days: <strong id="days-val">10</strong></span>
                     </div>
                 </div>
 
-                <div class="grid" style="margin-top: 1rem;">
-                    <div>
-                        <label for="sim-temp">Temperature Exposure (°C):</label>
+                <div class="grid">
+                    <div class="form-field">
+                        <label for="sim-temp">Temperature Exposure (°C)</label>
                         <input type="range" id="sim-temp" min="-100" max="50" value="4" oninput="updateRangeLabel('temp-val', this.value); runSimulation();">
-                        <span style="font-size: 0.85rem; color: var(--brand-primary);">Temp: <strong id="temp-val">4</strong>°C</span>
+                        <span class="range-readout">Temp: <strong id="temp-val">4</strong>°C</span>
                     </div>
-                    <div>
-                        <label for="sim-humidity">Relative Humidity (%):</label>
+                    <div class="form-field">
+                        <label for="sim-humidity">Relative Humidity (%)</label>
                         <input type="range" id="sim-humidity" min="0" max="100" value="40" oninput="updateRangeLabel('hum-val', this.value); runSimulation();">
-                        <span style="font-size: 0.85rem; color: var(--brand-primary);">Humidity: <strong id="hum-val">40</strong>%</span>
+                        <span class="range-readout">Humidity: <strong id="hum-val">40</strong>%</span>
                     </div>
                 </div>
 
-                <hr style="margin: 2rem 0;">
+                <hr>
 
                 <!-- Real-time Simulation Outputs -->
                 <h4>Simulation Output Indicators</h4>
-                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border);">
-                        <small class="text-muted" style="display:block; margin-bottom: 0.3rem;">On-Chain Compliance Status</small>
-                        <span id="sim-status-badge" class="badge" style="font-size: 1.1rem; padding: 6px 16px;">PASS</span>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <small class="text-muted">On-Chain Compliance Status</small>
+                        <span id="sim-status-badge" class="badge">PASS</span>
                     </div>
-                    <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border);">
-                        <small class="text-muted" style="display:block; margin-bottom: 0.3rem;">AI Predicted Shelf-Life</small>
-                        <strong id="sim-prediction-val" style="font-size: 1.25rem; color: var(--brand-primary); display:block;">20 Days</strong>
-                        <span id="sim-risk-badge" class="badge" style="font-size: 0.7rem; padding: 2px 8px; margin-top: 4px;">SAFE</span>
+                    <div class="stat-box">
+                        <small class="text-muted">AI Predicted Shelf-Life</small>
+                        <strong id="sim-prediction-val" class="stat-value">20 Days</strong>
+                        <span id="sim-risk-badge" class="badge risk-safe">SAFE</span>
                     </div>
                 </div>
 
                 <!-- Biochemical Description (Dynamic Text) -->
-                <div id="sim-explanation-box" style="margin-top: 1.5rem; padding: 1.2rem; border-radius: 12px; background: rgba(0,242,255,0.03); border-left: 4px solid var(--brand-primary);">
+                <div id="sim-explanation-box" class="callout">
                     <h5>🔬 Spoilage & Biochemical Analysis</h5>
-                    <p id="sim-explanation-text" style="font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                    <p id="sim-explanation-text">
                         Loading biochemical simulation profile...
                     </p>
                 </div>
@@ -84,16 +86,18 @@
         <div>
             <!-- Biological Reference Visuals (User requested: Yess) -->
             <article class="ref-card">
-                <header>
-                    <i class="fa-solid fa-list-check" style="color: var(--brand-success); font-size: 1.4rem; margin-right: 10px;"></i>
-                    <strong>Legal Biological Envelopes</strong>
+                <header class="card-header">
+                    <div class="card-header-title">
+                        <i class="fa-solid fa-list-check" style="color: var(--brand-success);"></i>
+                        <strong>Legal Biological Envelopes</strong>
+                    </div>
                 </header>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                <p class="card-lead text-muted">
                     Scientific thresholds enforced in our smart contracts and database routines:
                 </p>
                 
-                <figure style="margin: 0; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 12px;">
-                    <table style="font-size: 0.75rem; margin: 0;">
+                <figure class="table-wrap">
+                    <table class="compact-table">
                         <thead>
                             <tr>
                                 <th>Category</th>
@@ -129,14 +133,16 @@
 
             <!-- Solidity Smart Contract Visualizer -->
             <article class="math-card">
-                <header>
-                    <i class="fa-solid fa-shield-halved" style="color: var(--brand-warning); font-size: 1.3rem; margin-right: 10px;"></i>
-                    <strong>Smart Contract Ledger Core</strong>
+                <header class="card-header">
+                    <div class="card-header-title">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--brand-warning);"></i>
+                        <strong>Smart Contract Ledger Core</strong>
+                    </div>
                 </header>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                <p class="card-lead text-muted">
                     Solidity core verifying sequence enforcement to prevent supply chain tampering:
                 </p>
-                <pre style="font-size: 0.7rem; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); overflow-x: auto; color: #a5d6ff;">
+                <pre class="code-block">
 function addEvent(string memory _publicId, string memory _eventType, uint256 _timestamp) public onlyAuthorized {
     require(bytes(batches[_publicId].publicId).length != 0, "NotExist");
     batchEvents[_publicId].push(EventInfo({
@@ -152,25 +158,27 @@ function addEvent(string memory _publicId, string memory _eventType, uint256 _ti
     </div>
 
     <!-- ================= ALGORITHM MATHEMATICAL CORE VISUALIZERS ================= -->
-    <h2 style="margin-top: 3rem; font-family: var(--font-heading);">🧮 Mathematical & Predictive Intelligence Core</h2>
-    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <h2 class="section-heading">🧮 Mathematical & Predictive Intelligence Core</h2>
+    <div class="layout-2col">
         
         <!-- Linear Regression Decay Model -->
         <article class="math-card">
-            <header>
-                <i class="fa-solid fa-chart-line" style="color: var(--brand-primary); font-size: 1.4rem; margin-right: 10px;"></i>
-                <strong>Adaptive Shelf-Life Model (Linear Regression)</strong>
+            <header class="card-header">
+                <div class="card-header-title">
+                    <i class="fa-solid fa-chart-line" style="color: var(--brand-primary);"></i>
+                    <strong>Adaptive Shelf-Life Model (Linear Regression)</strong>
+                </div>
             </header>
             
-            <p style="font-size: 0.9rem; line-height: 1.6;">
-                Our predictive AI module uses a multivariate **Linear Regression** model to estimate remaining shelf life. The model uses features representing cumulative stressors:
+            <p>
+                Our predictive AI module uses a multivariate <strong>Linear Regression</strong> model to estimate remaining shelf life. The model uses features representing cumulative stressors:
             </p>
             
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border); margin: 1rem 0;">
-                <code style="font-size: 1.15rem; color: var(--brand-primary); font-weight: 700;">Remaining Days = &beta;₀ - (&beta;₁ &times; T_avg) - (&beta;₂ &times; T_max) - (&beta;₃ &times; Hum_avg) - Elapsed Days</code>
+            <div class="formula-box">
+                <code>Remaining Days = &beta;₀ - (&beta;₁ &times; T_avg) - (&beta;₂ &times; T_max) - (&beta;₃ &times; Hum_avg) - Elapsed Days</code>
             </div>
 
-            <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem;">
+            <ul class="text-muted">
                 <li><strong>&beta;₀ (Base Shelf-life):</strong> Initial shelf life allocation (60 days for medical/cryo, 30 days for foods).</li>
                 <li><strong>Temperature Stressors (&beta;₁, &beta;₂):</strong> Penalizes exposure above safe biological baselines.</li>
                 <li><strong>Relative Humidity Stressors (&beta;₃):</strong> Evaluated dynamically for herbs (preventing volatile terpene oil degradation).</li>
@@ -180,20 +188,22 @@ function addEvent(string memory _publicId, string memory _eventType, uint256 _ti
 
         <!-- RAG Vector Similarity -->
         <article class="math-card">
-            <header>
-                <i class="fa-solid fa-compass" style="color: var(--brand-success); font-size: 1.4rem; margin-right: 10px;"></i>
-                <strong>RAG Expert Search (Vector Cosine Similarity)</strong>
+            <header class="card-header">
+                <div class="card-header-title">
+                    <i class="fa-solid fa-compass" style="color: var(--brand-success);"></i>
+                    <strong>RAG Expert Search (Vector Cosine Similarity)</strong>
+                </div>
             </header>
             
-            <p style="font-size: 0.9rem; line-height: 1.6;">
-                Preservation advice and chatbot queries are resolved via **Retrieval-Augmented Generation (RAG)** using the SentenceTransformer `all-MiniLM-L6-v2` model:
+            <p>
+                Preservation advice and chatbot queries are resolved via <strong>Retrieval-Augmented Generation (RAG)</strong> using the SentenceTransformer <code>all-MiniLM-L6-v2</code> model:
             </p>
 
-            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border); margin: 1rem 0;">
-                <code style="font-size: 1.2rem; color: var(--brand-success); font-weight: 700;">cos(&theta;) = ( A &middot; B ) / ( ||A|| &times; ||B|| )</code>
+            <div class="formula-box">
+                <code style="color: var(--brand-success);">cos(&theta;) = ( A &middot; B ) / ( ||A|| &times; ||B|| )</code>
             </div>
 
-            <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 1.2rem;">
+            <ul class="text-muted">
                 <li><strong>Vector Embedding Conversion:</strong> Natural language queries and knowledge entries are mapped to 384-dimensional dense vectors.</li>
                 <li><strong>Cosine Similarity Value (cos(&theta;)):</strong> Ranges from `-1.0` to `1.0` (where values `&gt; 0.15` indicate high semantic relationship).</li>
                 <li><strong>Instant Retrieval:</strong> The system matches the prompt with the most relevant scientific preservation standard, returning immediate, clinical advice.</li>
@@ -300,9 +310,7 @@ function runSimulation() {
     // Update UI elements
     const statusBadge = document.getElementById('sim-status-badge');
     statusBadge.innerText = compliance;
-    statusBadge.className = compliance === "PASS" ? "badge" : "badge risk-crit";
-    statusBadge.style.background = compliance === "PASS" ? "var(--brand-success)" : "var(--brand-danger)";
-    statusBadge.style.color = "#fff";
+    statusBadge.className = compliance === "PASS" ? "badge risk-safe" : "badge risk-crit";
 
     document.getElementById('sim-prediction-val').innerText = `${prediction} Days`;
     
@@ -319,17 +327,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<style>
-/* Glowing states & custom sliders inside style.css but included here as a fallback */
-.simulator-card {
-    border-color: rgba(0, 242, 255, 0.2);
-    box-shadow: 0 10px 30px rgba(0, 242, 255, 0.05);
-}
-.risk-safe { background: rgba(46,182,125,0.15) !important; color: var(--brand-success) !important; border: 1px solid var(--brand-success) !important; }
-.risk-warn { background: rgba(246,201,14,0.15) !important; color: var(--brand-warning) !important; border: 1px solid var(--brand-warning) !important; }
-.risk-crit { background: rgba(255,71,87,0.15) !important; color: var(--brand-danger) !important; border: 1px solid var(--brand-danger) !important; }
-pre {
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
-}
-</style>
 {% endblock %}

@@ -3,7 +3,7 @@
 {% block title %}Batch Detail - {{ batch.public_id }}{% endblock %}
 
 {% block content %}
-<section class="fade-in">
+<section class="page-section fade-in">
     <article>
         <header>
             <h2>Batch: {{ batch.public_id }}</h2>
@@ -38,36 +38,29 @@
 
         <div style="margin-top: 2.5rem;">
             <h5>🧬 AI Analysis & Intelligence</h5>
-            <div class="grid">
-                <div>
+            <div class="grid meta-actions">
+                <div class="action-cell">
                     <button id="btn-predict" class="primary-btn full-width" onclick="predictShelfLife('{{ batch.public_id }}')">
                         Predict Shelf-Life (AI)
                     </button>
-                    <small class="text-muted" style="display: block; margin-top: 0.5rem; text-align: center;">
-                        Determined by environmental condition & stressors.
-                    </small>
+                    <small class="text-muted action-hint">Determined by environmental condition & stressors.</small>
                 </div>
-                <div>
+                <div class="action-cell">
                     <button id="btn-advise" class="secondary outline full-width" onclick="getPreservationAdvice('{{ batch.public_id }}')">
                         Get Preservation Advice (RAG)
                     </button>
-                    <small class="text-muted" style="display: block; margin-top: 0.5rem; text-align: center;">
-                        Drug-specific guidelines for transport & storage.
-                    </small>
+                    <small class="text-muted action-hint">Drug-specific guidelines for transport & storage.</small>
                 </div>
-                <div>
+                <div class="action-cell">
                     <a href="{{ url_for('batch_report', public_id=batch.public_id) }}" target="_blank" role="button" class="contrast outline full-width">
                         Generate Official Report
                     </a>
-                    <small class="text-muted" style="display: block; margin-top: 0.5rem; text-align: center;">
-                        Downloadable blockchain audit certificate.
-                    </small>
+                    <small class="text-muted action-hint">Downloadable blockchain audit certificate.</small>
                 </div>
             </div>
         </div>
 
-        <div id="result-box" style="display:none; margin-top: 2rem; padding: 1.5rem; background: rgba(0, 242, 255, 0.05); border: 1px solid var(--brand-primary); border-radius: 12px; animation: fadeInUp 0.4s ease;">
-        </div>
+        <div id="result-box" aria-live="polite"></div>
     </article>
 
     <h3 style="margin-top: 3rem;">Chain of Custody (Events)</h3>
@@ -121,42 +114,15 @@
 <!-- Transaction Details Modal -->
 <dialog id="tx-modal">
     <article style="max-width: 700px; border-radius: 24px; border: 1px solid var(--brand-primary);">
-        <header>
+        <header class="card-header">
             <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('tx-modal').removeAttribute('open')"></a>
-            <h4 style="color: var(--brand-primary);"><i class="fa-solid fa-file-contract"></i> Transaction Details</h4>
+            <div class="card-header-title">
+                <i class="fa-solid fa-file-contract"></i>
+                <strong>Transaction Details</strong>
+            </div>
         </header>
         <div id="tx-details-content">Loading...</div>
     </article>
 </dialog>
 
-<script>
-    function showTxDetails(txHash) {
-        document.getElementById('tx-modal').setAttribute('open', 'true');
-        const contentDiv = document.getElementById('tx-details-content');
-        contentDiv.innerHTML = 'Loading transaction data from Web3 node...';
-
-        fetch(`/api/transaction/${txHash}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    contentDiv.innerHTML = `<div style="color: var(--brand-danger);">${data.error}</div>`;
-                } else {
-                    const statusStr = data.status === 1 ? '<span style="color: var(--brand-success);">Success</span>' : '<span style="color: var(--brand-danger);">Failed</span>';
-                    contentDiv.innerHTML = `
-                        <div class="grid" style="font-family: monospace; font-size: 0.9rem;">
-                            <div><strong>Tx Hash:</strong></div><div style="word-break: break-all; color: var(--brand-primary);">${data.hash}</div>
-                            <div><strong>Block Number:</strong></div><div>${data.block_number}</div>
-                            <div><strong>From:</strong></div><div style="word-break: break-all;">${data.from}</div>
-                            <div><strong>To Contract:</strong></div><div style="word-break: break-all;">${data.to}</div>
-                            <div><strong>Gas Used:</strong></div><div>${data.gas_used}</div>
-                            <div><strong>Status:</strong></div><div>${statusStr}</div>
-                        </div>
-                    `;
-                }
-            })
-            .catch(err => {
-                contentDiv.innerHTML = `<div style="color: var(--brand-danger);">Error fetching transaction details.</div>`;
-            });
-    }
-</script>
 {% endblock %}
