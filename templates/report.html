@@ -47,7 +47,7 @@
             <div>
                 <strong>Point of Origin:</strong> {{ batch.origin }}<br>
                 <strong>Registration Date:</strong> {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
-                <strong>Security Proof:</strong> {{ batch.blockchain_tx_hash[:25] }}...
+                <strong>Security Proof:</strong> {% if batch.blockchain_tx_hash %}{{ batch.blockchain_tx_hash[:25] }}...{% else %}N/A (Off-chain Local){% endif %}
             </div>
         </div>
     </div>
@@ -80,7 +80,7 @@
                     <td>{{ event.location }}</td>
                     <td>{{ event.temperature }}°C</td>
                     <td>{{ event.humidity }}%</td>
-                    <td><code style="font-size:0.8em;">{{ event.blockchain_tx_hash[:15] }}...</code></td>
+                    <td><code style="font-size:0.8em;">{% if event.blockchain_tx_hash %}{{ event.blockchain_tx_hash[:15] }}...{% else %}Off-chain Local{% endif %}</code></td>
                 </tr>
                 {% endfor %}
             </tbody>
