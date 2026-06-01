@@ -79,14 +79,14 @@
     <div class="action-bar">
         {% if current_user.role == 'admin' %}
             <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
-            <a href="{{ url_for('create_event') }}" role="button" class="secondary outline">Log New Event</a>
-            <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+            <a href="{{ url_for('create_event') }}" role="button" class="secondary-btn">Log New Event</a>
+            <a href="javascript:void(0)" role="button" class="contrast outline" onclick="toggleChatWidget()">Ask AI Assistant</a>
         {% elif current_user.role == 'producer' %}
             <a href="{{ url_for('create_batch') }}" role="button" class="primary-btn">Register New Batch</a>
-            <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+            <a href="javascript:void(0)" role="button" class="contrast outline" onclick="toggleChatWidget()">Ask AI Assistant</a>
         {% else %}
             <a href="{{ url_for('create_event') }}" role="button" class="primary-btn">Log New Event</a>
-            <a href="#chat-modal" role="button" class="contrast outline" onclick="document.getElementById('chat-modal').setAttribute('open', 'true')">Ask AI Assistant</a>
+            <a href="javascript:void(0)" role="button" class="contrast outline" onclick="toggleChatWidget()">Ask AI Assistant</a>
         {% endif %}
     </div>
     
@@ -101,7 +101,7 @@
                 Origin: {{ batch.origin }}<br>
                 Registered: {{ batch.created_at.strftime('%Y-%m-%d') }}
             </div>
-            <a href="{{ url_for('batch_detail', public_id=batch.public_id) }}" role="button" class="secondary outline full-width">View Details</a>
+            <a href="{{ url_for('batch_detail', public_id=batch.public_id) }}" role="button" class="primary-btn full-width">View Details</a>
         </div>
         {% else %}
         <article style="grid-column: 1 / -1; text-align: center;">
@@ -120,9 +120,8 @@
         </summary>
 
         <div style="margin-top: 1.5rem;">
-            <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 1rem;">
-                <div><small>Latest Block: <strong id="latest-block" style="color: var(--brand-primary);">Loading...</strong></small></div>
-                <div style="text-align: right;"><small>Gas Limit: <strong id="gas-limit">Loading...</strong></small></div>
+            <div style="margin-bottom: 1rem;">
+                <small>Latest Block: <strong id="latest-block" style="color: var(--brand-teal);">Loading...</strong></small>
             </div>
 
             <figure>
@@ -155,13 +154,27 @@
     </article>
 </dialog>
 
-<!-- Include Chatbot Modal -->
-{% include "chat.html" %}
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    function formatAge(seconds) {
+        if (seconds < 60) {
+            return `${seconds} sec ago`;
+        }
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) {
+            return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
+        }
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+            return `${hours} hr${hours > 1 ? 's' : ''} ago`;
+        }
+        const days = Math.floor(hours / 24);
+        return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+
     function fetchBlockchainStatus() {
         fetch('{{ url_for("blockchain_status") }}')
             .then(res => res.json())
@@ -176,16 +189,15 @@
                     statusText.className = 'status-text status-text--ok';
 
                     document.getElementById('latest-block').textContent = data.latest_block;
-                    document.getElementById('gas-limit').textContent = data.gas_limit;
 
                     tbody.innerHTML = '';
                     data.recent_blocks.forEach(block => {
                         const tr = document.createElement('tr');
                         const age = Math.floor(Date.now()/1000) - block.timestamp;
                         tr.innerHTML = `
-                            <td><span class="badge" style="background: rgba(0,242,255,0.1); color: var(--brand-primary);">${block.number}</span></td>
+                            <td><span class="badge" style="background: rgba(0,242,255,0.1); color: var(--brand-teal);">${block.number}</span></td>
                             <td style="font-family: monospace; color: var(--text-muted); cursor: pointer;" onclick="alert('Block Hash: ${block.hash}')">${block.hash.substring(0, 20)}...</td>
-                            <td>${age} sec ago</td>
+                            <td>${formatAge(age)}</td>
                             <td>${block.tx_count}</td>
                         `;
                         tbody.appendChild(tr);
@@ -232,12 +244,12 @@
                 datasets: [{
                     data: [compliantCount, failedCount],
                     backgroundColor: [
-                        'rgba(46, 182, 125, 0.2)', // --brand-success
-                        'rgba(255, 71, 87, 0.2)'   // --brand-danger
+                        'rgba(0, 242, 255, 0.15)', // --brand-teal
+                        'rgba(255, 107, 61, 0.15)'  // --brand-sunset
                     ],
                     borderColor: [
-                        '#2eb67d',
-                        '#ff4757'
+                        '#00f2ff',
+                        '#ff6b3d'
                     ],
                     borderWidth: 2
                 }]
@@ -261,7 +273,7 @@
                 datasets: [{
                     label: 'Active Batches',
                     data: distValues,
-                    backgroundColor: 'rgba(0, 242, 255, 0.2)', // --brand-primary
+                    backgroundColor: 'rgba(0, 242, 255, 0.15)', // --brand-teal
                     borderColor: '#00f2ff',
                     borderWidth: 2,
                     borderRadius: 8
@@ -274,7 +286,7 @@
                     y: {
                         beginAtZero: true,
                         ticks: { stepSize: 1 },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
                     },
                     x: {
                         grid: { display: false }
@@ -295,14 +307,14 @@
                 datasets: [{
                     data: [riskDataObj['Safe'], riskDataObj['At Risk'], riskDataObj['Critical']],
                     backgroundColor: [
-                        'rgba(46, 182, 125, 0.2)', // Safe: Green
-                        'rgba(246, 201, 14, 0.2)', // At Risk: Amber
-                        'rgba(255, 71, 87, 0.2)'   // Critical: Red
+                        'rgba(0, 242, 255, 0.15)', // Safe: Teal
+                        'rgba(246, 201, 14, 0.15)',  // At Risk: Amber
+                        'rgba(255, 107, 61, 0.15)'  // Critical: Sunset Orange
                     ],
                     borderColor: [
-                        '#2eb67d',
+                        '#00f2ff',
                         '#f6c90e',
-                        '#ff4757'
+                        '#ff6b3d'
                     ],
                     borderWidth: 2
                 }]

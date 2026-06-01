@@ -13,7 +13,7 @@
         {% for policy in policies %}
         <article class="batch-card fade-in">
             <header style="margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
-                <h4 style="color: var(--brand-primary); text-transform: capitalize;"><i class="fa-solid fa-temperature-half"></i> {{ policy.product_type }}</h4>
+                <h4 style="color: var(--brand-teal); text-transform: capitalize;"><i class="fa-solid fa-temperature-half"></i> {{ policy.product_type }}</h4>
             </header>
 
             <form method="POST" action="{{ url_for('settings') }}">

@@ -1,7 +1,17 @@
-<dialog id="chat-modal">
-    <article style="max-width: 650px; border-radius: 24px; border: 1px solid var(--brand-primary); box-shadow: 0 0 50px rgba(0, 242, 255, 0.15);">
-        <header class="card-header" style="background: rgba(0, 242, 255, 0.05);">
-            <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('chat-modal').removeAttribute('open')" style="color: var(--brand-primary);"></a>
+<!-- Floating AI Chat Widget -->
+<div id="ai-chat-widget" class="chat-widget">
+    <!-- Pulsing FAB Button to toggle -->
+    <button type="button" class="chat-widget-fab" onclick="toggleChatWidget()" aria-label="Toggle AI Assistant">
+        <i class="fa-solid fa-robot"></i>
+        <span class="fab-pulse"></span>
+    </button>
+    
+    <!-- Expanded Chat Drawer -->
+    <div class="chat-widget-drawer">
+        <header class="card-header">
+            <button type="button" class="close-btn" onclick="toggleChatWidget()" aria-label="Close Chat">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="card-header-title">
                 <i class="fa-solid fa-robot"></i>
                 <strong>Bio-Tech AI Assistant</strong>
@@ -10,17 +20,17 @@
 
         <div id="chat-history">
             <p class="ai-msg">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> 
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--brand-teal); margin-right: 6px;"></i> 
                 Hello! I am your <strong>Bio-Tech Traceability Assistant</strong>. I can help with preservation tips, batch status, or regulatory guidelines. How can I assist you?
             </p>
         </div>
 
         <!-- Quick Actions Panel -->
         <div class="chat-quick-actions">
-            <button type="button" onclick="submitQuickQuery('How to store Tulsi?')" class="secondary outline">🌿 How to store Tulsi?</button>
-            <button type="button" onclick="submitQuickQuery('Check Vaccine Guidelines')" class="secondary outline">💉 Check Vaccine Guidelines</button>
-            <button type="button" onclick="submitQuickQuery('Audit BSL-4 Protocol')" class="secondary outline">☣️ Audit BSL-4 Protocol</button>
-            <button type="button" onclick="submitQuickQuery('How many batches do we have?')" class="secondary outline">📊 Check total batches</button>
+            <button type="button" onclick="submitQuickQuery('How to store Tulsi?')" class="contrast outline">🌿 How to store Tulsi?</button>
+            <button type="button" onclick="submitQuickQuery('Check Vaccine Guidelines')" class="contrast outline">💉 Check Vaccine Guidelines</button>
+            <button type="button" onclick="submitQuickQuery('Audit BSL-4 Protocol')" class="contrast outline">☣️ Audit BSL-4 Protocol</button>
+            <button type="button" onclick="submitQuickQuery('How many batches do we have?')" class="contrast outline">📊 Check total batches</button>
         </div>
 
         <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();">
@@ -31,5 +41,5 @@
                 </button>
             </div>
         </form>
-    </article>
-</dialog>
+    </div>
+</div>

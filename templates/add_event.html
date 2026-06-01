@@ -63,9 +63,10 @@
             </div>
 
             <div style="margin-top: 2rem; border-top: 1px dashed var(--glass-border); padding-top: 1.5rem; text-align: center;">
-                <button type="submit" class="primary-btn" style="min-width: 280px;">
+                <button type="submit" class="primary-btn" style="min-width: 280px; display: block; margin: 0 auto 0.75rem;">
                     Append to Blockchain <i class="fa-solid fa-cloud-arrow-up" style="margin-left: 8px;"></i>
                 </button>
+                <a href="{{ url_for('dashboard') }}" role="button" class="contrast outline" style="min-width: 280px; display: inline-flex;">Cancel & Return</a>
             </div>
         </form>
     </article>

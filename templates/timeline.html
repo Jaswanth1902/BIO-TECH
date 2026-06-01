@@ -16,7 +16,7 @@
                 <div class="batch-list-scroll">
                     {% for b in batches %}
                     <a href="{{ url_for('timeline_batch', public_id=b.public_id) }}" 
-                       class="batch-list-link secondary {% if current_batch and current_batch.id == b.id %}primary-btn{% else %}outline{% endif %}" 
+                       class="batch-list-link {% if current_batch and current_batch.id == b.id %}primary-btn{% else %}contrast outline{% endif %}" 
                        role="button">
                         <i class="fa-solid fa-dna" aria-hidden="true"></i> {{ b.name }}
                         <small>{{ b.public_id }}</small>
@@ -71,7 +71,7 @@
                                 {% endif %}
                             </div>
                             {% if ev.blockchain_tx_hash %}
-                            <small style="color: var(--brand-warning); font-size: 0.75rem; margin-top: 0.5rem; display: block;">
+                            <small style="color: var(--brand-sunset); font-size: 0.75rem; margin-top: 0.5rem; display: block;">
                                 <i class="fa-brands fa-ethereum"></i> TX: {{ ev.blockchain_tx_hash[:20] }}...
                             </small>
                             {% endif %}

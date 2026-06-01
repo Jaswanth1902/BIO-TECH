@@ -20,14 +20,14 @@
             <div>
                 {% if batch.blockchain_tx_hash %}
                 <strong>Blockchain Proof:</strong><br>
-                <a href="javascript:void(0)" onclick="showTxDetails('{{ batch.blockchain_tx_hash }}')" style="font-family: monospace; font-size: 0.75rem; color: var(--brand-warning); text-decoration: underline;">{{ batch.blockchain_tx_hash[:20] }}...</a>
+                <a href="javascript:void(0)" onclick="showTxDetails('{{ batch.blockchain_tx_hash }}')" style="font-family: monospace; font-size: 0.75rem; color: var(--brand-sunset); text-decoration: underline;">{{ batch.blockchain_tx_hash[:20] }}...</a>
                 {% else %}
                 <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-muted);">Local Only</span>
                 {% endif %}
             </div>
             <div>
                 <strong>Cold Chain Integrity:</strong><br>
-                <span class="badge" style="background: {% if integrity_status == 'Pass' %}rgba(46, 204, 113, 0.2){% else %}rgba(231, 76, 60, 0.2){% endif %}; color: {% if integrity_status == 'Pass' %}#2ecc71{% else %}#e74c3c{% endif %}; border: 1px solid currentColor;">
+                <span class="badge {% if integrity_status == 'Pass' %}risk-safe{% else %}risk-crit{% endif %}">
                     {{ integrity_status }}
                 </span>
                 <small style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
@@ -46,7 +46,7 @@
                     <small class="text-muted action-hint">Determined by environmental condition & stressors.</small>
                 </div>
                 <div class="action-cell">
-                    <button id="btn-advise" class="secondary outline full-width" onclick="getPreservationAdvice('{{ batch.public_id }}')">
+                    <button id="btn-advise" class="secondary-btn full-width" onclick="getPreservationAdvice('{{ batch.public_id }}')">
                         Get Preservation Advice (RAG)
                     </button>
                     <small class="text-muted action-hint">Drug-specific guidelines for transport & storage.</small>
@@ -92,7 +92,7 @@
                     <td><small>{{ event.timestamp.strftime('%Y-%m-%d %H:%M') }}</small></td>
                     <td>
                         {% if event.blockchain_tx_hash %}
-                        <a href="javascript:void(0)" onclick="showTxDetails('{{ event.blockchain_tx_hash }}')" style="font-family: monospace; font-size:0.7rem; color: var(--brand-warning); text-decoration: underline;">{{ event.blockchain_tx_hash[:12] }}...</a>
+                        <a href="javascript:void(0)" onclick="showTxDetails('{{ event.blockchain_tx_hash }}')" style="font-family: monospace; font-size:0.7rem; color: var(--brand-sunset); text-decoration: underline;">{{ event.blockchain_tx_hash[:12] }}...</a>
                         {% else %}
                         <em style="font-size:0.8rem; color: var(--text-muted);">Local</em>
                         {% endif %}
@@ -106,7 +106,7 @@
     <article style="text-align: center;">
         <p>No lifecycle events logged for this batch yet.</p>
         {% if current_user.role in ['admin', 'producer'] %}
-        <a href="{{ url_for('create_event') }}" role="button" class="secondary outline">Log First Event</a>
+        <a href="{{ url_for('create_event') }}" role="button" class="secondary-btn">Log First Event</a>
         {% endif %}
     </article>
     {% endif %}

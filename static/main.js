@@ -74,6 +74,13 @@ function getPreservationAdvice(publicId) {
 }
 
 // ---- AI Chatbot ----
+function toggleChatWidget() {
+    const widget = document.getElementById('ai-chat-widget');
+    if (widget) {
+        widget.classList.toggle('is-expanded');
+    }
+}
+
 function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const history = document.getElementById('chat-history');
@@ -153,8 +160,9 @@ function showTxDetails(txHash) {
         });
 }
 
-// Allow Enter key to submit chat
+// DOMContentLoaded bindings for UI interactivity
 document.addEventListener('DOMContentLoaded', () => {
+    // ---- Enter key to submit AI chat assistant ----
     const chatInput = document.getElementById('chat-input');
     if (chatInput) {
         chatInput.addEventListener('keydown', e => {
@@ -162,6 +170,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 sendChatMessage();
             }
+        });
+    }
+
+
+    // ---- Mobile Slide-Out Navigation Drawer & Overlay Toggle ----
+    const mobileToggle = document.getElementById('mobile-nav-toggle');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (mobileToggle && overlay) {
+        mobileToggle.addEventListener('click', () => {
+            document.body.classList.toggle('mobile-sidebar-active');
+            overlay.classList.toggle('active');
+        });
+        
+        overlay.addEventListener('click', () => {
+            document.body.classList.remove('mobile-sidebar-active');
+            overlay.classList.remove('active');
         });
     }
 });

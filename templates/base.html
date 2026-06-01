@@ -11,41 +11,84 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- Floating Hamburger Trigger for Mobile Drawer -->
+    <button id="mobile-nav-toggle" class="mobile-nav-toggle" aria-label="Open Navigation">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+    </button>
+
+    <!-- Dim Backdrop Overlay for Mobile Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
     <header class="site-header">
-        <nav class="container site-nav">
-            <ul class="site-nav-brand">
-                <li>
-                    <strong>
-                        <a href="{{ url_for('dashboard') }}" class="contrast">
-                            <i class="fa-solid fa-dna" aria-hidden="true"></i>Bio-Tech Supply Chain
-                        </a>
-                    </strong>
-                </li>
-            </ul>
+        <nav class="site-nav">
+            <div class="site-nav-brand">
+                <a href="{{ url_for('dashboard') }}" class="contrast" data-tooltip="Bio-Tech Chain">
+                    <i class="fa-solid fa-dna" aria-hidden="true"></i>
+                    <span>Bio-Tech Chain</span>
+                </a>
+            </div>
+            
             <ul class="site-nav-links">
                 {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                <li><a href="{{ url_for('academy') }}"><i class="fa-solid fa-graduation-cap" style="margin-right: 6px;"></i>Academic Center</a></li>
-                <li><a href="{{ url_for('timeline') }}">Market Timeline</a></li>
+                <li>
+                    <a href="{{ url_for('dashboard') }}" class="{% if request.path == url_for('dashboard') %}active{% endif %}" data-tooltip="Dashboard">
+                        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('academy') }}" class="{% if request.path == url_for('academy') %}active{% endif %}" data-tooltip="Academic Center">
+                        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                        <span>Academic Center</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('timeline') }}" class="{% if request.path.startswith('/timeline') %}active{% endif %}" data-tooltip="Market Timeline">
+                        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                        <span>Market Timeline</span>
+                    </a>
+                </li>
                 
                 {% if current_user.role in ['admin', 'producer'] %}
-                <li><a href="{{ url_for('create_batch') }}">Register Batch</a></li>
+                <li>
+                    <a href="{{ url_for('create_batch') }}" class="{% if request.path == url_for('create_batch') %}active{% endif %}" data-tooltip="Register Batch">
+                        <i class="fa-solid fa-circle-plus" aria-hidden="true"></i>
+                        <span>Register Batch</span>
+                    </a>
+                </li>
                 {% endif %}
                 
                 {% if current_user.role in ['admin', 'staff'] %}
-                <li><a href="{{ url_for('create_event') }}">Log Event</a></li>
+                <li>
+                    <a href="{{ url_for('create_event') }}" class="{% if request.path == url_for('create_event') %}active{% endif %}" data-tooltip="Log Event">
+                        <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                        <span>Log Event</span>
+                    </a>
+                </li>
                 {% endif %}
                 
                 {% if current_user.role == 'admin' %}
-                <li><a href="{{ url_for('settings') }}">Clinical Settings</a></li>
-                {% endif %}
                 <li>
-                    <a href="{{ url_for('logout') }}" role="button" class="secondary outline nav-user-btn">
-                        {{ current_user.username }} <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                    <a href="{{ url_for('settings') }}" class="{% if request.path == url_for('settings') %}active{% endif %}" data-tooltip="Clinical Settings">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                        <span>Clinical Settings</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                <li class="nav-user-item">
+                    <a href="{{ url_for('logout') }}" role="button" class="nav-user-btn" data-tooltip="Logout">
+                        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                        <span>Logout ({{ current_user.username }})</span>
                     </a>
                 </li>
                 {% else %}
-                <li><a href="{{ url_for('login') }}" role="button" class="primary-btn">Portal Login</a></li>
+                <li class="nav-user-item">
+                    <a href="{{ url_for('login') }}" role="button" class="nav-user-btn" data-tooltip="Portal Login">
+                        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                        <span>Portal Login</span>
+                    </a>
+                </li>
                 {% endif %}
             </ul>
         </nav>
@@ -74,7 +117,10 @@
             </small>
         </div>
     </footer>
-    
+    {% if current_user.is_authenticated %}
+    {% include "chat.html" %}
+    {% endif %}
+
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>
