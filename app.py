@@ -262,7 +262,8 @@ def blockchain_status():
                 'number': block.number,
                 'hash': block.hash.hex(),
                 'timestamp': block.timestamp,
-                'tx_count': len(block.transactions)
+                'tx_count': len(block.transactions),
+                'transactions': [tx.hex() for tx in block.transactions]
             })
 
         blocks.reverse() # newest first

@@ -175,6 +175,32 @@
         return `${days} day${days > 1 ? 's' : ''} ago`;
     }
 
+    // Modal display handler for block cryptographic receipts
+    function showBlockDetails(blockNum, blockHash, txCount, firstTxHash) {
+        if (txCount > 0 && firstTxHash) {
+            // Reuses the Web3 transaction modal logic in main.js
+            showTxDetails(firstTxHash);
+        } else {
+            const modal = document.getElementById('tx-modal');
+            const contentDiv = document.getElementById('tx-details-content');
+            if (modal && contentDiv) {
+                modal.setAttribute('open', 'true');
+                contentDiv.innerHTML = `
+                    <div style="padding: 0.5rem 0;">
+                        <p style="color: var(--text-muted); margin-bottom: 1.25rem; font-size: 0.9rem; line-height: 1.5;">
+                            This block does not contain any transactions (e.g. Genesis block or system idle validation period).
+                        </p>
+                        <div class="tx-detail-grid">
+                            <strong>Block Number:</strong><div>${blockNum}</div>
+                            <strong>Block Hash:</strong><div class="tx-hash" style="word-break: break-all; font-family: monospace;">${blockHash}</div>
+                            <strong>Total Transactions:</strong><div>0</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    }
+
     function fetchBlockchainStatus() {
         fetch('{{ url_for("blockchain_status") }}')
             .then(res => res.json())
@@ -194,9 +220,10 @@
                     data.recent_blocks.forEach(block => {
                         const tr = document.createElement('tr');
                         const age = Math.floor(Date.now()/1000) - block.timestamp;
+                        const firstTx = (block.transactions && block.transactions.length > 0) ? block.transactions[0] : '';
                         tr.innerHTML = `
                             <td><span class="badge" style="background: rgba(0,242,255,0.1); color: var(--brand-teal);">${block.number}</span></td>
-                            <td style="font-family: monospace; color: var(--text-muted); cursor: pointer;" onclick="alert('Block Hash: ${block.hash}')">${block.hash.substring(0, 20)}...</td>
+                            <td style="font-family: monospace; color: var(--text-muted); cursor: pointer;" onclick="showBlockDetails(${block.number}, '${block.hash}', ${block.tx_count}, '${firstTx}')">${block.hash.substring(0, 20)}...</td>
                             <td>${formatAge(age)}</td>
                             <td>${block.tx_count}</td>
                         `;
